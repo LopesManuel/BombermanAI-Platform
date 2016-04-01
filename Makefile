@@ -1,5 +1,5 @@
 #OBJS specifies which files to compile as part of the project 
-OBJS = SDL_Handler.cpp Player.cpp main.cpp 
+OBJS = SDL_Handler.cpp Player.cpp Map.cpp main.cpp 
 
 #OBJ_NAME specifies the name of our exectuable 
 OBJ_NAME = main 
@@ -20,4 +20,4 @@ LINKER_FLAGS = -lSDL2
 
 #This is the target that compiles our executable
 all : $(OBJS) 
-	$(CC) -I$(INC_DIR) $(OBJS) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o $(OBJ_NAME) 
+	$(CC) $(OBJS) -I$(INC_DIR) $(COMPILER_FLAGS) $(LINKER_FLAGS) -o $(OBJ_NAME) 

@@ -4,6 +4,7 @@
 #include <SDL2/SDL.h> 
 #include "Global_Vars.h"
 #include "Player.h"
+#include "Map.h"
 #include <fstream>
 #include <iostream>
 
@@ -34,5 +35,8 @@ bool load_Map(const char*);
 
 //Manual player
 static Player* manual_Player;
+//Map object to control all actions
+static Map* map;
+
 
 #endif

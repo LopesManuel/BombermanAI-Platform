@@ -9,6 +9,8 @@
 const int SCREEN_WIDTH  = 640;
 const int SCREEN_HEIGHT = 480;
 const int SPRITE_SIZE   = 32;
+const int NUM_COLS = SCREEN_WIDTH / SPRITE_SIZE;
+const int NUM_ROWS = SCREEN_HEIGHT / SPRITE_SIZE;
 
 // Global logic 
 int gameover = 0;
@@ -32,8 +34,9 @@ Player** all_Players = (Player**) malloc(sizeof(Player*) * 4);
 //Number of active players
 int num_Players = 1;
 
-//Holds world map
-char* world_Map = (char*) malloc(sizeof(char) * ((SCREEN_WIDTH/SPRITE_SIZE) * (SCREEN_HEIGHT/SPRITE_SIZE) ));
+//Holds world map vector
+char* world_Map = (char*) malloc(sizeof(char) * ((NUM_COLS) * (NUM_ROWS) ));
+
 
 int main ( int argc, char *argv[] )
 {

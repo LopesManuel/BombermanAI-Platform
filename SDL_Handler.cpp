@@ -17,16 +17,20 @@ void handle_Events(SDL_Event event)
 					gameover = 1;
 					break;
 				case SDLK_LEFT:
-					manual_Player->move(LEFT);
+                    if(map->can_Move(manual_Player, -1))
+    					manual_Player->move(LEFT);
 					break;
 				case SDLK_RIGHT:
-					manual_Player->move(RIGHT);
+                    if(map->can_Move(manual_Player, 1))
+    					manual_Player->move(RIGHT);
 					break;
 				case SDLK_UP:
-					manual_Player->move(UP);
+                    if(map->can_Move(manual_Player, -NUM_COLS))
+    					manual_Player->move(UP);
 					break;
 				case SDLK_DOWN:
-					manual_Player->move(DOWN);
+                    if(map->can_Move(manual_Player, NUM_COLS))
+					   manual_Player->move(DOWN);
 					break;
 			}
 			break;
@@ -114,6 +118,7 @@ bool load_Media()
 		printf("Error loading map!");
 		success = false;
 	}
+    map = new Map(world_Map);
 	return success;
 }
 bool update_Game(Player** players)
@@ -140,9 +145,9 @@ void refresh_Map(){
 	SDL_Surface* stone = bitmap_Loader("stone_wall.bmp");
 	char ch;
 	
-	for (int y = 0; y < SCREEN_HEIGHT / SPRITE_SIZE; y++) 
+	for (int y = 0; y < NUM_ROWS; y++) 
 	{
-		for (int x = 0; x < SCREEN_WIDTH / SPRITE_SIZE; x++) 
+		for (int x = 0; x < NUM_COLS; x++) 
 		{
 			char ch = world_Map[ mIndex(x,y)];
 			rcPosition.x = x * SPRITE_SIZE;
@@ -178,9 +183,9 @@ bool load_Map(const char* path)
 	std::fstream fin( path, std::fstream::in);
 
 	/* draw the map from the file */
-	for (int y = 0; y < SCREEN_HEIGHT / SPRITE_SIZE; y++) 
+	for (int y = 0; y < NUM_ROWS; y++) 
 	{
-		for (int x = 0; x < SCREEN_WIDTH / SPRITE_SIZE; x++) 
+		for (int x = 0; x < NUM_COLS; x++) 
 		{
 			fin >> std::noskipws >> ch;
 			if(ch == '\n')

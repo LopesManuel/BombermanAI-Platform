@@ -7,6 +7,9 @@
 extern const int SCREEN_WIDTH;
 extern const int SCREEN_HEIGHT;
 extern const int SPRITE_SIZE;
+extern const int NUM_COLS;
+extern const int NUM_ROWS;
+
 
 // Global logic 
 extern int gameover;
@@ -26,7 +29,7 @@ extern char* world_Map;
 //Gets matrix index from vector 
 inline int mIndex( int x, int y)
 { 
-  return ( y * ( SCREEN_WIDTH/SPRITE_SIZE )) + x;
+  return ( y * NUM_COLS) + x;
 }
 
 //Number of players active
@@ -35,11 +38,11 @@ extern int num_Players;
 // Player's possible actions
 enum Actions
 {
-  UP = 0,
-  DOWN = 1,
-  LEFT = 2,
-  RIGHT = 3,
-  FIRE = 4
+  UP,
+  DOWN,
+  LEFT,
+  RIGHT,
+  FIRE
 };
 
 #endif
