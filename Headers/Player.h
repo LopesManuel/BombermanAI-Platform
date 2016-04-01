@@ -2,6 +2,7 @@
 #define __PLAYER_H__
 
 #include "Global_Vars.h"
+#include <math.h>
 
 class Player
 {
