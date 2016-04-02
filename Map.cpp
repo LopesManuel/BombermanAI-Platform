@@ -1,7 +1,8 @@
 #include "Map.h"
 
 
-Map::Map(char* map ){
+Map::Map(char* map )
+{
     //Vector size is equal to num_cols * num_rows
     SIZE = NUM_COLS * NUM_ROWS;
     // Allocate space to hold world map
@@ -9,13 +10,16 @@ Map::Map(char* map ){
     
 }
 
-bool Map::can_Move(Player* player, int movement){
+bool Map::can_Move(Player* player, int movement)
+{
     int player_position = player->get_mPosition();
     if( world_Map[ player_position + movement] == '0')
         return true;
    
     return false;     
 }
+
+
 
 char& Map::operator[](int i)
 {

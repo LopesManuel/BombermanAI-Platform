@@ -32,6 +32,14 @@ void handle_Events(SDL_Event event)
                     if(map->can_Move(manual_Player, NUM_COLS))
 					   manual_Player->move(DOWN);
 					break;
+                case SDLK_SPACE:
+                    if(map->can_Move(manual_Player, 0)) 
+                    {   // Can only plant 1 bomb per location 
+                        Bomb* temp = new Bomb(manual_Player->get_X(), manual_Player->get_Y(), 2);
+                        bombs.push_back(temp);
+                        std::cout << "Bombs:" << bombs.size()<< std::endl;
+                    }
+                    break;
 			}
 			break;
 	}
@@ -121,21 +129,64 @@ bool load_Media()
     map = new Map(world_Map);
 	return success;
 }
-bool update_Game(Player** players)
+bool update_Game(std::vector<Player*> players)
 {
 	//Function success flag
 	bool success = true;
-
-	//Draws map
+    manual_Player = players.front();
+    //Draws map
 	refresh_Map();
 	//Draws all live players
-	for(int i=0; i < num_Players; i++)
-	{
-		if(players[i]->is_Alive())
+    for ( Player* p : players){
+		if( p != NULL && p->is_Alive())
 		{
-			load_Player(players[i]);
+			load_Object(p);
 		}
 	}
+	//Draws all bombs
+    for ( Bomb* b : bombs){
+		if( b != NULL && b->is_Alive())
+		{
+
+            if(b->update()){               
+                if( b->get_turns_2explosion() <= 0 ){
+                    explode(b->get_mPosition(), b->get_range());
+                }
+                else 
+                    world_Map[b->get_mPosition()] = BOMB;
+            }
+            else
+                clear_explosion(b->get_mPosition(), b->get_range());
+   		}
+	}
+    return success;
+}
+void explode(int pos, int range){
+    world_Map[pos] = EXPLOSION;
+
+    for ( int i = 0; i < range; i++){
+        if ( world_Map[pos + i] == STONE || world_Map[pos + i] == GRASS)
+            world_Map[pos + i] = EXPLOSION;
+        if ( world_Map[pos - i] == STONE || world_Map[pos - i] == GRASS)
+            world_Map[pos - i] = EXPLOSION;
+        if ( world_Map[pos + i*NUM_COLS] == STONE || world_Map[pos + i*NUM_COLS] == GRASS)
+            world_Map[pos + i*NUM_COLS] = EXPLOSION;
+        if ( world_Map[pos - i*NUM_COLS] == STONE || world_Map[pos - i*NUM_COLS] == GRASS)
+            world_Map[pos - i*NUM_COLS] = EXPLOSION;
+    }
+}
+void clear_explosion(int pos, int range){
+    world_Map[pos] = GRASS;
+    for ( int i = 0; i < range; i++){
+        if ( world_Map[pos + i] == EXPLOSION)
+            world_Map[pos + i] = GRASS;
+        if ( world_Map[pos - i] == EXPLOSION)
+            world_Map[pos - i] = GRASS;
+        if ( world_Map[pos + i*NUM_COLS] == EXPLOSION)
+            world_Map[pos + i*NUM_COLS] = GRASS;
+        if ( world_Map[pos - i*NUM_COLS] == EXPLOSION)
+            world_Map[pos - i*NUM_COLS] = GRASS;
+    }
 }
 void refresh_Map(){
 	SDL_Rect rcPosition;
@@ -143,7 +194,10 @@ void refresh_Map(){
 	SDL_Surface* grass = bitmap_Loader("grass.bmp");
 	SDL_Surface* wall = bitmap_Loader("brick_wall.bmp");
 	SDL_Surface* stone = bitmap_Loader("stone_wall.bmp");
-	char ch;
+    SDL_Surface* bomb = bitmap_Loader("bomb.bmp");
+    SDL_Surface* explosion = bitmap_Loader("explosion.bmp");
+	
+    char ch;
 	
 	for (int y = 0; y < NUM_ROWS; y++) 
 	{
@@ -152,18 +206,34 @@ void refresh_Map(){
 			char ch = world_Map[ mIndex(x,y)];
 			rcPosition.x = x * SPRITE_SIZE;
 			rcPosition.y = y * SPRITE_SIZE;
-			if(ch == '*')
+			if(ch == WALL)
 				SDL_BlitSurface(wall, NULL, gScreenSurface, &rcPosition);
-			else if (ch == '0')
+			else if (ch == GRASS)
 				SDL_BlitSurface(grass, NULL, gScreenSurface, &rcPosition);
-			else if (ch == '+')
+			else if (ch == STONE)
 				SDL_BlitSurface(stone, NULL, gScreenSurface, &rcPosition);
-	
+            else if (ch == BOMB){
+   				SDL_BlitSurface(grass, NULL, gScreenSurface, &rcPosition);
+                /* setup sprite colorkey and turn on RLE */
+	            int colorkey = SDL_MapRGB(gScreenSurface->format, 255, 0, 255);
+	            SDL_SetColorKey(bomb, SDL_TRUE | SDL_RLEACCEL, colorkey);
+            	SDL_BlitSurface(bomb, NULL, gScreenSurface, &rcPosition);
+            }
+	        else if (ch == EXPLOSION)
+            { 
+			     SDL_BlitSurface(grass, NULL, gScreenSurface, &rcPosition);         
+                /* setup sprite colorkey and turn on RLE */
+	           int colorkey = SDL_MapRGB(gScreenSurface->format, 255, 0, 255);
+	           SDL_SetColorKey(explosion, SDL_TRUE | SDL_RLEACCEL, colorkey);
+            	SDL_BlitSurface(explosion, NULL, gScreenSurface, &rcPosition);
+            }
 		}
 	}
 	SDL_FreeSurface(grass);
 	SDL_FreeSurface(wall);
-	SDL_FreeSurface(stone);	
+	SDL_FreeSurface(stone);
+	SDL_FreeSurface(bomb);
+	SDL_FreeSurface(explosion);		
 }
 
 bool load_Map(const char* path)
@@ -173,7 +243,9 @@ bool load_Map(const char* path)
 	SDL_Surface* grass = bitmap_Loader("grass.bmp");
 	SDL_Surface* wall = bitmap_Loader("brick_wall.bmp");
 	SDL_Surface* stone = bitmap_Loader("stone_wall.bmp");
-	/* Check if they were all loaded correctly*/
+
+	
+    /* Check if they were all loaded correctly*/
 	if(grass == NULL || wall == NULL || stone == NULL) 
 	{
 		printf("Error loading map textures!");
@@ -209,19 +281,21 @@ bool load_Map(const char* path)
 	return true;
 }
 
-void load_Player(Player* player)
-{
-	manual_Player = player;
 
-	SDL_Rect rcPlayer;
-	rcPlayer.x = player->get_X();
-	rcPlayer.y = player->get_Y();
-	SDL_Surface* player_surface = bitmap_Loader(player->get_Skin());
+template <typename Type> 
+void load_Object(Type object)
+{
+	SDL_Rect rcobject;
+	rcobject.x = object->get_X();
+	rcobject.y = object->get_Y();
+	SDL_Surface* object_surface = bitmap_Loader(object->get_Skin());
 
 	/* setup sprite colorkey and turn on RLE */
 	int colorkey = SDL_MapRGB(gScreenSurface->format, 255, 0, 255);
-	SDL_SetColorKey(player_surface, SDL_TRUE | SDL_RLEACCEL, colorkey);
+	SDL_SetColorKey(object_surface, SDL_TRUE | SDL_RLEACCEL, colorkey);
 
-	SDL_BlitSurface(player_surface, NULL, gScreenSurface, &rcPlayer);
-	SDL_FreeSurface(player_surface);
+	SDL_BlitSurface(object_surface, NULL, gScreenSurface, &rcobject);
+	SDL_FreeSurface(object_surface);
+    
 }
+

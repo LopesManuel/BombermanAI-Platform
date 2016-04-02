@@ -45,4 +45,13 @@ enum Actions
   FIRE
 };
 
+// Tiles
+enum Tiles
+{
+  EXPLOSION = 'e',
+  WALL = '*',
+  STONE = '+',
+  BOMB = 'x',
+  GRASS = '0'
+};
 #endif

@@ -1,6 +1,7 @@
 #include "Player.h"
 
-Player::Player(const char* s, int pos_x, int pos_y){
+Player::Player(const char* s, int pos_x, int pos_y)
+{
 	skin = s;
 	x = pos_x;
 	y = pos_y;
@@ -10,8 +11,10 @@ Player::Player(const char* s, int pos_x, int pos_y){
 	connected = false;
 }
 
-void Player::move( int direction ){
-	switch (direction) {
+void Player::move( int direction )
+{
+	switch (direction) 
+    {
 		case UP:
 			y -= VELOCITY;
 			break;

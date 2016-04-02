@@ -4,6 +4,7 @@
 #include "Global_Vars.h"
 #include "SDL_Handler.h"
 #include "Player.h"
+#include <vector>
 
 //Screen dimension constants 
 const int SCREEN_WIDTH  = 640;
@@ -29,7 +30,7 @@ Player* player1 = new Player("player.bmp" , SPRITE_SIZE, SPRITE_SIZE);
 Player* player2;
 Player* player3;
 Player* player4;
-Player** all_Players = (Player**) malloc(sizeof(Player*) * 4);
+
 
 //Number of active players
 int num_Players = 1;
@@ -40,10 +41,11 @@ char* world_Map = (char*) malloc(sizeof(char) * ((NUM_COLS) * (NUM_ROWS) ));
 
 int main ( int argc, char *argv[] )
 {
-	all_Players[0] = player1;
-	all_Players[1] = player2;
-	all_Players[2] = player3;
-	all_Players[3] = player4;
+    std::vector<Player*> all_Players;
+    all_Players.push_back(player1);
+	all_Players.push_back(player2);
+	all_Players.push_back(player3);
+	all_Players.push_back(player4);
 
 	//Start up SDL and create window
 	if( !init() )

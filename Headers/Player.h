@@ -12,12 +12,16 @@ public:
 
 	//Returns player position in the world vector
 	int get_mPosition(){ return mIndex(map_x, map_y);};
-	//Returns player X in the world matrix
+	//Returns player's position in screen matrix
 	int get_X(){ return x;};
-	//Returns player Y in the world matrix
 	int get_Y(){ return y;};
+	//Returns player's position on matrix map
+	int get_mapX(){ return map_x;};
+	int get_mapY(){ return map_y;};
 	//Returns if the player is alive (dah)
 	bool is_Alive(){ return life;};
+    //Set life to false
+    void die(){ life = false;};
 	//Checks if it is connected
 	bool is_Connected(){ return connected;};
 	//Updates player position
@@ -39,6 +43,7 @@ private:
 	bool connected;
 	//Path to skin file
 	const char* skin;
+
 };
 
 #endif
