@@ -1,7 +1,15 @@
 #ifndef __DEFINITIONS__
 #define __DEFINITIONS__
 
+#include <math.h>
+#include <fstream>
+#include <iostream>
+#include <vector>    
+#include <deque>
+#include <cassert> 
+//Using SDL and standard IO 
 #include <SDL2/SDL.h> 
+#include <stdio.h> 
 
 //Screen dimension constants 
 extern const int SCREEN_WIDTH;

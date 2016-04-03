@@ -1,7 +1,7 @@
 #include "SDL_Handler.h"
 
 /* Handles all input events*/
-void handle_Events(SDL_Event event)
+void handle_Events(SDL_Event event, Map *map, Player *manual_Player)
 {
 	switch (event.type) {
 		/* close button clicked */
@@ -36,8 +36,7 @@ void handle_Events(SDL_Event event)
                     if(map->can_Move(manual_Player, 0)) 
                     {   // Can only plant 1 bomb per location 
                         Bomb* temp = new Bomb(manual_Player->get_X(), manual_Player->get_Y(), 3);
-                        bombs.push_back(temp);
-                        std::cout << "Bombs:" << bombs.size()<< std::endl;
+                        map->add_bomb(temp);
                     }
                     break;
 			}
@@ -117,7 +116,7 @@ void close()
 }
 
 
-bool load_Media()
+bool load_Media(Map *map)
 {
 	//Loading success flag
 	bool success = true;
@@ -126,89 +125,22 @@ bool load_Media()
 		printf("Error loading map!");
 		success = false;
 	}
-    map = new Map(world_Map);
 	return success;
 }
-bool update_Game(std::vector<Player*> players)
+void draw_Player(std::vector<Player*> players)
 {
-	//Function success flag
-	bool success = false;
-    manual_Player = players.front();
-    //Draws map
-	refresh_Map();
-	//Draws all bombs
-    for ( Bomb* b : bombs){
-		if( b != NULL && b->is_Alive())
-		{
-
-            if(b->update()){               
-                if( b->get_turns_2explosion() > 0 )
-                {
-                    world_Map[b->get_mPosition()] = BOMB;
-                }
-                else if (  b->get_turns_2explosion() == 0)
-                {
-                    //Right
-                    explode(b->get_mPosition(), b->get_range(), 1);
-                    //Left
-                    explode(b->get_mPosition(), b->get_range(), -1);
-                    //Up
-                    explode(b->get_mPosition(), b->get_range(), NUM_COLS);
-                    //Down
-                    explode(b->get_mPosition(), b->get_range(), -NUM_COLS);
-                }
-            }
-            else
-            {
-                clear_explosion(b->get_mPosition(), b->get_range());
-                bombs.pop_front();
-            }
-   		}
-	}
-    /*Checks if any player died this turn
-        And draws all live players */
+    /*Draw all live players */
     for ( Player* p : players){
 		if( p != NULL && p->is_Alive())
 		{
-            if( world_Map[p->get_mPosition()] == EXPLOSION )
-                p->die();			
-            else
-                load_Object(p);
-           success = true;
+            load_Object(p);
 		}
-	}
-    return success;
+	}    
 }
 
-void explode(int pos, int range, int direction){
-    world_Map[pos] = EXPLOSION;
 
-    for ( int i = 0; i < range; i++){
-        if ( world_Map[pos + i * direction] == GRASS)
-            world_Map[pos + i * direction] = EXPLOSION;
-        if ( world_Map[pos + i * direction] == WALL || world_Map[pos + i * direction] == BOMB ) 
-            break; 
-        if( world_Map[pos + i * direction] == STONE ) 
-        {
-            world_Map[pos + i * direction] = EXPLOSION;
-            break;
-        }
-    }
-}
-void clear_explosion(int pos, int range){
-    world_Map[pos] = GRASS;
-    for ( int i = 0; i < range; i++){
-        if ( world_Map[pos + i] == EXPLOSION)
-            world_Map[pos + i] = GRASS;
-        if ( world_Map[pos - i] == EXPLOSION)
-            world_Map[pos - i] = GRASS;
-        if ( world_Map[pos + i*NUM_COLS] == EXPLOSION)
-            world_Map[pos + i*NUM_COLS] = GRASS;
-        if ( world_Map[pos - i*NUM_COLS] == EXPLOSION)
-            world_Map[pos - i*NUM_COLS] = GRASS;
-    }
-}
-void refresh_Map(){
+void draw_Map(Map *map)
+{
 	SDL_Rect rcPosition;
 		/* Textures */
 	SDL_Surface* grass = bitmap_Loader("grass.bmp");
@@ -223,7 +155,7 @@ void refresh_Map(){
 	{
 		for (int x = 0; x < NUM_COLS; x++) 
 		{
-			char ch = world_Map[ mIndex(x,y)];
+			char ch = (*map)[ mIndex(x,y)];
 			rcPosition.x = x * SPRITE_SIZE;
 			rcPosition.y = y * SPRITE_SIZE;
 			if(ch == WALL)
@@ -258,23 +190,10 @@ void refresh_Map(){
 
 bool load_Map(const char* path)
 {
-	SDL_Rect rcPosition;
-	/* Textures */
-	SDL_Surface* grass = bitmap_Loader("grass.bmp");
-	SDL_Surface* wall = bitmap_Loader("brick_wall.bmp");
-	SDL_Surface* stone = bitmap_Loader("stone_wall.bmp");
-
-	
-    /* Check if they were all loaded correctly*/
-	if(grass == NULL || wall == NULL || stone == NULL) 
-	{
-		printf("Error loading map textures!");
-		return false;
-	}
 	char ch;
 	std::fstream fin( path, std::fstream::in);
 
-	/* draw the map from the file */
+	/* Gets the map from the input */
 	for (int y = 0; y < NUM_ROWS; y++) 
 	{
 		for (int x = 0; x < NUM_COLS; x++) 
@@ -282,22 +201,10 @@ bool load_Map(const char* path)
 			fin >> std::noskipws >> ch;
 			if(ch == '\n')
 				fin >> std::noskipws >> ch;
-
+                
 			world_Map[ mIndex(x,y)] = ch;
-			rcPosition.x = x * SPRITE_SIZE;
-			rcPosition.y = y * SPRITE_SIZE;
-			if(ch == '*')
-				SDL_BlitSurface(wall, NULL, gScreenSurface, &rcPosition);
-			else if (ch == '0')
-				SDL_BlitSurface(grass, NULL, gScreenSurface, &rcPosition);
-			else if (ch == '+')
-				SDL_BlitSurface(stone, NULL, gScreenSurface, &rcPosition);
-	
 		}
 	}
-	SDL_FreeSurface(grass);
-	SDL_FreeSurface(wall);
-	SDL_FreeSurface(stone);
 	return true;
 }
 

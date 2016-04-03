@@ -1,18 +1,13 @@
 #ifndef __SDL_HELPER__
 #define __SDL_HELPER__
 
-#include <SDL2/SDL.h> 
+
 #include "Global_Vars.h"
 #include "Player.h"
 #include "Map.h"
-#include "Bomb.h"
-#include <fstream>
-#include <iostream>
-#include <vector>    
-#include <deque>
 
 /* Handles all input events*/
-void handle_Events(SDL_Event event);
+void handle_Events(SDL_Event event, Map* map, Player* mp);
 
 /* Initializes SDL windows surface*/
 bool init();
@@ -25,7 +20,7 @@ void close();
 
 /* Loads all media files 
    Called in the beginning to load all media */
-bool load_Media();
+bool load_Media(Map *map);
 
 void explode(int pos, int range, int direction);
 
@@ -33,20 +28,13 @@ void clear_explosion(int pos, int range);
 
 template <typename Type> void load_Object(Type object);
 
-bool update_Game(std::vector<Player*> players);
+void draw_Map(Map *map);
 
-void refresh_Map();
+void draw_Player(std::vector<Player*> players);
 
 /* Loads level map */
 bool load_Map(const char*);
 
-//Manual player
-static Player* manual_Player;
-//Map object to control all actions
-static Map* map;
-
-//Bombs
-static std::deque<Bomb*> bombs;
 
 
 #endif

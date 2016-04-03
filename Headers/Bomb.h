@@ -2,8 +2,6 @@
 #define __BOMB_H__
 
 #include "Global_Vars.h"
-#include <math.h>
-#include <iostream>
 
 class Bomb
 {

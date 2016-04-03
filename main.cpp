@@ -1,10 +1,6 @@
-//Using SDL and standard IO 
-#include <SDL2/SDL.h> 
-#include <stdio.h> 
 #include "Global_Vars.h"
 #include "SDL_Handler.h"
 #include "Player.h"
-#include <vector>
 
 //Screen dimension constants 
 const int SCREEN_WIDTH  = 640;
@@ -38,6 +34,8 @@ int num_Players = 1;
 //Holds world map vector
 char* world_Map = (char*) malloc(sizeof(char) * ((NUM_COLS) * (NUM_ROWS) ));
 
+//Map object to control all events
+Map* map;
 
 int main ( int argc, char *argv[] )
 {
@@ -54,25 +52,24 @@ int main ( int argc, char *argv[] )
 		exit(-1);
 	}
 		//Load all images 
-	if(!load_Media())
+	if(!load_Media(map))
 	{
 		printf( "Failed to load textures!\n" );
 		exit(-1);
 	}
 	else
-	{				
+	{			
+        map = new Map(world_Map);	
 		/* message pump */
 		while (!gameover)
 		{
 			/* look for an event */
-			if (SDL_PollEvent(&event)) {
-				handle_Events(event);
+			if (SDL_PollEvent(&event) ){
+				handle_Events(event, map, all_Players.front());
 			}
-			if(!update_Game(all_Players))
-			{
-				printf( "Failed to update game!\n" );
-				exit(-1);
-			}
+            map->update_Game(all_Players);
+            draw_Map(map);
+            draw_Player(all_Players);
 			//Update the surface
 			SDL_UpdateWindowSurface( gWindow );
 		}
