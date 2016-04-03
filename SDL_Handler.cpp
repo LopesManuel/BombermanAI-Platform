@@ -132,17 +132,10 @@ bool load_Media()
 bool update_Game(std::vector<Player*> players)
 {
 	//Function success flag
-	bool success = true;
+	bool success = false;
     manual_Player = players.front();
     //Draws map
 	refresh_Map();
-	//Draws all live players
-    for ( Player* p : players){
-		if( p != NULL && p->is_Alive())
-		{
-			load_Object(p);
-		}
-	}
 	//Draws all bombs
     for ( Bomb* b : bombs){
 		if( b != NULL && b->is_Alive())
@@ -171,6 +164,18 @@ bool update_Game(std::vector<Player*> players)
                 bombs.pop_front();
             }
    		}
+	}
+    /*Checks if any player died this turn
+        And draws all live players */
+    for ( Player* p : players){
+		if( p != NULL && p->is_Alive())
+		{
+            if( world_Map[p->get_mPosition()] == EXPLOSION )
+                p->die();			
+            else
+                load_Object(p);
+           success = true;
+		}
 	}
     return success;
 }

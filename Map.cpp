@@ -13,7 +13,9 @@ Map::Map(char* map )
 bool Map::can_Move(Player* player, int movement)
 {
     int player_position = player->get_mPosition();
-    if( world_Map[ player_position + movement] == '0')
+    if( world_Map[ player_position + movement] == EXPLOSION)
+        player->die();
+    if( world_Map[ player_position + movement] == GRASS)
         return true;
    
     return false;     

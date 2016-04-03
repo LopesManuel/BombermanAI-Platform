@@ -3,10 +3,10 @@
 Player::Player(const char* s, int pos_x, int pos_y)
 {
 	skin = s;
-	x = pos_x;
-	y = pos_y;
-    map_x = pos_x / SPRITE_SIZE;
-    map_y = pos_y / SPRITE_SIZE;
+	x = pos_x * SPRITE_SIZE;
+	y = pos_y * SPRITE_SIZE;
+    map_x = pos_x;
+    map_y = pos_y;
 	life = true;
 	connected = false;
 }

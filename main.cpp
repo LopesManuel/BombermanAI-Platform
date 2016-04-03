@@ -26,8 +26,8 @@ SDL_Surface* gScreenSurface = NULL;
 SDL_Event event;
 
 //Players' holder
-Player* player1 = new Player("player.bmp" , SPRITE_SIZE, SPRITE_SIZE);
-Player* player2;
+Player* player1 = new Player("player.bmp" , 1, 1);
+Player* player2 = new Player("player2.bmp" , 18, 13);;
 Player* player3;
 Player* player4;
 
