@@ -35,7 +35,7 @@ void handle_Events(SDL_Event event)
                 case SDLK_SPACE:
                     if(map->can_Move(manual_Player, 0)) 
                     {   // Can only plant 1 bomb per location 
-                        Bomb* temp = new Bomb(manual_Player->get_X(), manual_Player->get_Y(), 2);
+                        Bomb* temp = new Bomb(manual_Player->get_X(), manual_Player->get_Y(), 3);
                         bombs.push_back(temp);
                         std::cout << "Bombs:" << bombs.size()<< std::endl;
                     }
@@ -149,30 +149,45 @@ bool update_Game(std::vector<Player*> players)
 		{
 
             if(b->update()){               
-                if( b->get_turns_2explosion() <= 0 ){
-                    explode(b->get_mPosition(), b->get_range());
-                }
-                else 
+                if( b->get_turns_2explosion() > 0 )
+                {
                     world_Map[b->get_mPosition()] = BOMB;
+                }
+                else if (  b->get_turns_2explosion() == 0)
+                {
+                    //Right
+                    explode(b->get_mPosition(), b->get_range(), 1);
+                    //Left
+                    explode(b->get_mPosition(), b->get_range(), -1);
+                    //Up
+                    explode(b->get_mPosition(), b->get_range(), NUM_COLS);
+                    //Down
+                    explode(b->get_mPosition(), b->get_range(), -NUM_COLS);
+                }
             }
             else
+            {
                 clear_explosion(b->get_mPosition(), b->get_range());
+                bombs.pop_front();
+            }
    		}
 	}
     return success;
 }
-void explode(int pos, int range){
+
+void explode(int pos, int range, int direction){
     world_Map[pos] = EXPLOSION;
 
     for ( int i = 0; i < range; i++){
-        if ( world_Map[pos + i] == STONE || world_Map[pos + i] == GRASS)
-            world_Map[pos + i] = EXPLOSION;
-        if ( world_Map[pos - i] == STONE || world_Map[pos - i] == GRASS)
-            world_Map[pos - i] = EXPLOSION;
-        if ( world_Map[pos + i*NUM_COLS] == STONE || world_Map[pos + i*NUM_COLS] == GRASS)
-            world_Map[pos + i*NUM_COLS] = EXPLOSION;
-        if ( world_Map[pos - i*NUM_COLS] == STONE || world_Map[pos - i*NUM_COLS] == GRASS)
-            world_Map[pos - i*NUM_COLS] = EXPLOSION;
+        if ( world_Map[pos + i * direction] == GRASS)
+            world_Map[pos + i * direction] = EXPLOSION;
+        if ( world_Map[pos + i * direction] == WALL || world_Map[pos + i * direction] == BOMB ) 
+            break; 
+        if( world_Map[pos + i * direction] == STONE ) 
+        {
+            world_Map[pos + i * direction] = EXPLOSION;
+            break;
+        }
     }
 }
 void clear_explosion(int pos, int range){

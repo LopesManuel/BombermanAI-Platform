@@ -21,6 +21,8 @@ public:
 	int get_mapY(){ return map_y;};
     //Returns Bomb life span
     int get_turns_2explosion(){return turns_2explode;};
+    //Returns if bomb exploded 
+    bool exploded(){return explode;};
     //Returns the explosion range
     int get_range(){return range;};
     //Updates bomb's life and checks if it has exploded

@@ -19,7 +19,7 @@ bool Bomb::update()
     if( !explode )
     {
         turns_2explode--;
-        if ( turns_2explode <= 0 )
+        if ( turns_2explode < 0 )
         {
             explode = true;
         }

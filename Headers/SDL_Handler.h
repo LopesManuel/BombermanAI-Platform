@@ -9,6 +9,7 @@
 #include <fstream>
 #include <iostream>
 #include <vector>    
+#include <deque>
 
 /* Handles all input events*/
 void handle_Events(SDL_Event event);
@@ -26,7 +27,7 @@ void close();
    Called in the beginning to load all media */
 bool load_Media();
 
-void explode(int pos, int range);
+void explode(int pos, int range, int direction);
 
 void clear_explosion(int pos, int range);
 
@@ -45,7 +46,7 @@ static Player* manual_Player;
 static Map* map;
 
 //Bombs
-static std::vector<Bomb*> bombs;
+static std::deque<Bomb*> bombs;
 
 
 #endif
