@@ -22,10 +22,10 @@ SDL_Surface* gScreenSurface = NULL;
 SDL_Event event;
 
 //Players' holder
-Player* player1 = new Player("player.bmp" , 1, 1);
-Player* player2 = new Player("player2.bmp" , 18, 13);;
-Player* player3;
-Player* player4;
+Player* player1 = new Player("Images/player.bmp" , 1, 1);
+Player* player2 = new Player("Images/player2.bmp" , 18, 13);
+Player* player3 = new Player("Images/player2.bmp" , 1, 13);
+Player* player4 = new Player("Images/player2.bmp" , 18, 1);
 
 //Number of active players
 int num_Players = 2;
@@ -39,22 +39,37 @@ Map* map;
 //Group of threads to handle player's communication
 std::thread *p_comm = new std::thread[num_Players - 1];
 
-void call_from_thread(int tid) {
-        std::cout << "Launched by thread " << tid << std::endl;
+void cmdParse(int argc , char* argv[])
+{
+    for(int i = 0; i < argc; i++)
+    {
+        std::cout << i << " - "<<argv[i] << std::endl;
+        if( strcmp(argv[i], "-n") == 0 )
+        {
+            int np = atoi(argv[i+1]);
+            if( np > 4 || np <= 0)
+            {
+                printf( "Max number of players is 4!\n" );
+                exit(-1);   
+            }
+            else
+                num_Players = np;
+        }
+    }
+    std::cout << num_Players << std::endl;
 }
 
 int main ( int argc, char *argv[] )
 {
+    //Parse comands
+    cmdParse(argc, argv);
+    
     std::vector<Player*> all_Players;
     all_Players.push_back(player1);
 	all_Players.push_back(player2);
 	all_Players.push_back(player3);
 	all_Players.push_back(player4);
     
-    //Launch a group of threads
-    for (int i = 0; i < num_Players; ++i) {
-        p_comm[i] = std::thread(call_from_thread, i);
-    }   
 	//Start up SDL and create window
 	if( !init() )
 	{
@@ -89,10 +104,7 @@ int main ( int argc, char *argv[] )
         else
             std::cout << "Player " << winner << " won!! Congratualtions!" << std::endl;
 	}
-        //Join the threads with the main thread
-    for (int i = 0; i < num_Players; ++i) {
-        p_comm[i].join();
-    }
+
 	close();
 	return 0;
 }

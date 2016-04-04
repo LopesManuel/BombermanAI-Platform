@@ -127,16 +127,16 @@ bool load_Media()
 {
 	//Loading success flag
 	bool success = true;
-	if( !load_Map("lvl1.txt") )
+	if( !load_Map("Lvls/lvl1.txt") )
 	{
 		printf("Error loading map!");
 		success = false;
 	}
-    grass = bitmap_Loader("grass.bmp");
-	wall = bitmap_Loader("brick_wall.bmp");
-	stone = bitmap_Loader("stone_wall.bmp");
-    bomb = bitmap_Loader("bomb.bmp");
-    explosion = bitmap_Loader("explosion.bmp");
+    grass = bitmap_Loader("Images/grass.bmp");
+	wall = bitmap_Loader("Images/brick_wall.bmp");
+	stone = bitmap_Loader("Images/stone_wall.bmp");
+    bomb = bitmap_Loader("Images/bomb.bmp");
+    explosion = bitmap_Loader("Images/explosion.bmp");
 	
     return success;
 }
