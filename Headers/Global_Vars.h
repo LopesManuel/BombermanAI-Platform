@@ -6,6 +6,7 @@
 #include <iostream>
 #include <vector>    
 #include <deque>
+#include <string>
 #include <cassert> 
 //Using SDL and standard IO 
 #include <SDL2/SDL.h> 
@@ -35,6 +36,9 @@ extern SDL_Event event;
 
 //Holds world map
 extern char* world_Map;
+
+//Holds path to the lvl map txt
+extern char* level;
 
 //Gets matrix index from vector 
 inline int mIndex( int x, int y)

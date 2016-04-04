@@ -20,7 +20,7 @@ void close();
 
 /* Loads all media files 
    Called in the beginning to load all media */
-bool load_Media();
+bool load_Media(char* lvl);
 
 void explode(int pos, int range, int direction);
 

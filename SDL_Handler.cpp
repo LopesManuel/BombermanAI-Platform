@@ -17,23 +17,23 @@ void handle_Events(SDL_Event event, Map *map, Player *manual_Player)
 					gameover = 1;
 					break;
 				case SDLK_LEFT:
-                    if(map->can_Move(manual_Player, -1) && manual_Player->is_Alive())
+                    if(manual_Player != NULL && map->can_Move(manual_Player, -1) && manual_Player->is_Alive())
     					manual_Player->move(LEFT);
 					break;
 				case SDLK_RIGHT:
-                    if(map->can_Move(manual_Player, 1) && manual_Player->is_Alive())
+                    if(manual_Player != NULL && map->can_Move(manual_Player, 1) && manual_Player->is_Alive())
     					manual_Player->move(RIGHT);
 					break;
 				case SDLK_UP:
-                    if(map->can_Move(manual_Player, -NUM_COLS) && manual_Player->is_Alive())
+                    if(manual_Player != NULL && map->can_Move(manual_Player, -NUM_COLS) && manual_Player->is_Alive())
     					manual_Player->move(UP);
 					break;
 				case SDLK_DOWN:
-                    if(map->can_Move(manual_Player, NUM_COLS) && manual_Player->is_Alive())
+                    if(manual_Player != NULL && map->can_Move(manual_Player, NUM_COLS) && manual_Player->is_Alive())
 					   manual_Player->move(DOWN);
 					break;
                 case SDLK_SPACE:
-                    if(map->can_Move(manual_Player, 0) && manual_Player->is_Alive()) 
+                    if(manual_Player != NULL && map->can_Move(manual_Player, 0) && manual_Player->is_Alive()) 
                     {   // Can only plant 1 bomb per location 
                         Bomb* temp = new Bomb(manual_Player->get_X(), manual_Player->get_Y(), 3);
                         map->add_bomb(temp);
@@ -123,11 +123,11 @@ void close()
 }
 
 
-bool load_Media()
+bool load_Media(char* lvl)
 {
 	//Loading success flag
 	bool success = true;
-	if( !load_Map("Lvls/lvl1.txt") )
+	if( !load_Map(lvl) )
 	{
 		printf("Error loading map!");
 		success = false;
@@ -194,7 +194,8 @@ bool load_Map(const char* path)
 {
 	char ch;
 	std::fstream fin( path, std::fstream::in);
-
+    if ( fin == NULL)
+        return false;
 	/* Gets the map from the input */
 	for (int y = 0; y < NUM_ROWS; y++) 
 	{
