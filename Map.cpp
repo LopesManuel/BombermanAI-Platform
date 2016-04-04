@@ -14,8 +14,10 @@ Map::Map(char* m )
 bool Map::can_Move(Player* player, int movement)
 {
     int player_position = player->get_mPosition();
-    if( map[ player_position + movement] == EXPLOSION)
+    if( map[ player_position + movement] == EXPLOSION){
         player->die();
+        num_Players--;
+    }
     if( map[ player_position + movement] == GRASS)
         return true;
    
@@ -30,8 +32,8 @@ char &Map::operator[](int index)
     return map[index];
 }
 
-void Map::update_Game(std::vector<Player*> players){
-    
+void Map::update_Game(std::vector<Player*> players)
+{    
 	//Draws all bombs
     for ( Bomb* b : (*bombs))
     {
@@ -66,10 +68,24 @@ void Map::update_Game(std::vector<Player*> players){
     {
 		if( p != NULL && p->is_Alive())
 		{
-            if( map[p->get_mPosition()] == EXPLOSION )
-                p->die();			
+            if( map[p->get_mPosition()] == EXPLOSION ){
+                p->die();
+                num_Players--;			
+            }
 		}
 	}  
+}
+
+const char* Map::who_Won(std::vector<Player*> players)
+{
+    for ( Player* p : players)
+    {
+		if( p != NULL && p->is_Alive())
+		{
+            return p->get_Skin();
+		}
+	}  
+    return NULL;
 }
 
 

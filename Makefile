@@ -10,7 +10,7 @@ CC = g++
 #COMPILER_FLAGS specifies the additional compilation options we're using 
 # -w suppresses all warnings 
 
-COMPILER_FLAGS = -w -std=c++11
+COMPILER_FLAGS = -w -std=c++11 -pthread
 
 #INC_DIR specifies the directory with all the header files to include
 INC_DIR = Headers/

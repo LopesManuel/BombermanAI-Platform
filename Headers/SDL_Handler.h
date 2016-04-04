@@ -20,7 +20,7 @@ void close();
 
 /* Loads all media files 
    Called in the beginning to load all media */
-bool load_Media(Map *map);
+bool load_Media();
 
 void explode(int pos, int range, int direction);
 
@@ -35,6 +35,11 @@ void draw_Player(std::vector<Player*> players);
 /* Loads level map */
 bool load_Map(const char*);
 
-
+//Textures
+static SDL_Surface* grass;
+static SDL_Surface* wall;
+static SDL_Surface* stone;
+static SDL_Surface* bomb;
+static SDL_Surface* explosion;
 
 #endif

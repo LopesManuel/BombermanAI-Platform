@@ -21,8 +21,9 @@ public:
     void add_bomb(Bomb* temp){bombs->push_back(temp);};
     void clear_explosion(int pos, int range);
     void explode(int pos, int range, int direction);
-    
-    
+    //Returns the player that won    
+    const char* who_Won(std::vector<Player*> players);
+
 private:
 	//Holds the world map
     char* map;

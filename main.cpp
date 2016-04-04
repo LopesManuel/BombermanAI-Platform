@@ -27,15 +27,21 @@ Player* player2 = new Player("player2.bmp" , 18, 13);;
 Player* player3;
 Player* player4;
 
-
 //Number of active players
-int num_Players = 1;
+int num_Players = 2;
 
 //Holds world map vector
 char* world_Map = (char*) malloc(sizeof(char) * ((NUM_COLS) * (NUM_ROWS) ));
 
 //Map object to control all events
 Map* map;
+
+//Group of threads to handle player's communication
+std::thread *p_comm = new std::thread[num_Players - 1];
+
+void call_from_thread(int tid) {
+        std::cout << "Launched by thread " << tid << std::endl;
+}
 
 int main ( int argc, char *argv[] )
 {
@@ -44,7 +50,11 @@ int main ( int argc, char *argv[] )
 	all_Players.push_back(player2);
 	all_Players.push_back(player3);
 	all_Players.push_back(player4);
-
+    
+    //Launch a group of threads
+    for (int i = 0; i < num_Players; ++i) {
+        p_comm[i] = std::thread(call_from_thread, i);
+    }   
 	//Start up SDL and create window
 	if( !init() )
 	{
@@ -52,7 +62,7 @@ int main ( int argc, char *argv[] )
 		exit(-1);
 	}
 		//Load all images 
-	if(!load_Media(map))
+	if(!load_Media())
 	{
 		printf( "Failed to load textures!\n" );
 		exit(-1);
@@ -61,20 +71,28 @@ int main ( int argc, char *argv[] )
 	{			
         map = new Map(world_Map);	
 		/* message pump */
-		while (!gameover)
+		while (!gameover  && num_Players > 1 )
 		{
 			/* look for an event */
 			if (SDL_PollEvent(&event) ){
 				handle_Events(event, map, all_Players.front());
 			}
-            map->update_Game(all_Players);
+            map->update_Game(all_Players);         
             draw_Map(map);
             draw_Player(all_Players);
 			//Update the surface
 			SDL_UpdateWindowSurface( gWindow );
 		}
+        const char * winner =  map->who_Won(all_Players);
+        if ( winner == NULL)
+            std::cout << "Draw!!" << std::endl;
+        else
+            std::cout << "Player " << winner << " won!! Congratualtions!" << std::endl;
 	}
-
+        //Join the threads with the main thread
+    for (int i = 0; i < num_Players; ++i) {
+        p_comm[i].join();
+    }
 	close();
 	return 0;
 }

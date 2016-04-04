@@ -17,23 +17,23 @@ void handle_Events(SDL_Event event, Map *map, Player *manual_Player)
 					gameover = 1;
 					break;
 				case SDLK_LEFT:
-                    if(map->can_Move(manual_Player, -1))
+                    if(map->can_Move(manual_Player, -1) && manual_Player->is_Alive())
     					manual_Player->move(LEFT);
 					break;
 				case SDLK_RIGHT:
-                    if(map->can_Move(manual_Player, 1))
+                    if(map->can_Move(manual_Player, 1) && manual_Player->is_Alive())
     					manual_Player->move(RIGHT);
 					break;
 				case SDLK_UP:
-                    if(map->can_Move(manual_Player, -NUM_COLS))
+                    if(map->can_Move(manual_Player, -NUM_COLS) && manual_Player->is_Alive())
     					manual_Player->move(UP);
 					break;
 				case SDLK_DOWN:
-                    if(map->can_Move(manual_Player, NUM_COLS))
+                    if(map->can_Move(manual_Player, NUM_COLS) && manual_Player->is_Alive())
 					   manual_Player->move(DOWN);
 					break;
                 case SDLK_SPACE:
-                    if(map->can_Move(manual_Player, 0)) 
+                    if(map->can_Move(manual_Player, 0) && manual_Player->is_Alive()) 
                     {   // Can only plant 1 bomb per location 
                         Bomb* temp = new Bomb(manual_Player->get_X(), manual_Player->get_Y(), 3);
                         map->add_bomb(temp);
@@ -103,6 +103,13 @@ SDL_Surface* bitmap_Loader(const char* path)
 /* Free resources and close SDL */
 void close()
 {
+    //Deallocate all surfaces
+    SDL_FreeSurface(grass);
+	SDL_FreeSurface(wall);
+	SDL_FreeSurface(stone);
+	SDL_FreeSurface(bomb);
+	SDL_FreeSurface(explosion);	
+    
 	//Deallocate surface
 	SDL_FreeSurface( gScreenSurface );
 	gScreenSurface = NULL;
@@ -116,7 +123,7 @@ void close()
 }
 
 
-bool load_Media(Map *map)
+bool load_Media()
 {
 	//Loading success flag
 	bool success = true;
@@ -125,7 +132,13 @@ bool load_Media(Map *map)
 		printf("Error loading map!");
 		success = false;
 	}
-	return success;
+    grass = bitmap_Loader("grass.bmp");
+	wall = bitmap_Loader("brick_wall.bmp");
+	stone = bitmap_Loader("stone_wall.bmp");
+    bomb = bitmap_Loader("bomb.bmp");
+    explosion = bitmap_Loader("explosion.bmp");
+	
+    return success;
 }
 void draw_Player(std::vector<Player*> players)
 {
@@ -142,13 +155,7 @@ void draw_Player(std::vector<Player*> players)
 void draw_Map(Map *map)
 {
 	SDL_Rect rcPosition;
-		/* Textures */
-	SDL_Surface* grass = bitmap_Loader("grass.bmp");
-	SDL_Surface* wall = bitmap_Loader("brick_wall.bmp");
-	SDL_Surface* stone = bitmap_Loader("stone_wall.bmp");
-    SDL_Surface* bomb = bitmap_Loader("bomb.bmp");
-    SDL_Surface* explosion = bitmap_Loader("explosion.bmp");
-	
+		/* Textures */	
     char ch;
 	
 	for (int y = 0; y < NUM_ROWS; y++) 
@@ -180,12 +187,7 @@ void draw_Map(Map *map)
             	SDL_BlitSurface(explosion, NULL, gScreenSurface, &rcPosition);
             }
 		}
-	}
-	SDL_FreeSurface(grass);
-	SDL_FreeSurface(wall);
-	SDL_FreeSurface(stone);
-	SDL_FreeSurface(bomb);
-	SDL_FreeSurface(explosion);		
+	}	
 }
 
 bool load_Map(const char* path)
