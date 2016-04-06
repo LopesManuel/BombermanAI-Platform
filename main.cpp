@@ -1,5 +1,6 @@
 #include "Global_Vars.h"
 #include "SDL_Handler.h"
+#include "Communicator.h"
 #include "Player.h"
 
 //Screen dimension constants 
@@ -44,11 +45,16 @@ char* level;
 Map* map;
 
 //Group of threads to handle player's communication
-std::thread *p_comm = new std::thread[num_Players - 1];
+std::thread* p_comm;
+// Comands to execute the ai agent program
+char executes[4][15];
+// File descriptores 
+int  fdread[4][2];
+int  fdwrite[4][2];
 
 //Parses the comands from shell
 void cmdParse(int argc , char* argv[]);
-
+//Initializes the players that are going to play
 void init_Players();
 
 int main ( int argc, char *argv[] )
@@ -71,7 +77,8 @@ int main ( int argc, char *argv[] )
 	}
 	else
 	{			
-        map = new Map(world_Map);	
+        map = new Map(world_Map);
+
 		/* message pump */
 		while (!gameover  && num_Players > 1 )
 		{
@@ -82,6 +89,11 @@ int main ( int argc, char *argv[] )
             map->update_Game(all_Players);         
             draw_Map(map);
             draw_Player(all_Players);
+            //Sends updates to AI agents
+            send_Map();
+            //Sends player's positions and receives movements
+            get_Action(all_Players);
+            
 			//Update the surface
 			SDL_UpdateWindowSurface( gWindow );
 		}
@@ -89,12 +101,15 @@ int main ( int argc, char *argv[] )
         if ( winner == NULL)
             std::cout << "Draw!!" << std::endl;
         else
-            std::cout << "Player " << winner << " won!! Congratualtions!" << std::endl;
+            std::cout << "Player " << winner << " won!! Congratulations!" << std::endl;
 	}
 
 	close();
 	return 0;
 }
+
+
+/*    Helper functions    */
 
 void cmdParse(int argc , char* argv[])
 {
@@ -108,8 +123,8 @@ void cmdParse(int argc , char* argv[])
                 printf( "Max number of players is 4!\n" );
                 exit(-1);   
             }
-            else
-                num_Players = np;
+            p_comm = new std::thread[np];
+            num_Players = np;
         }
         else if( strcmp(argv[i], "-l") == 0 )
         {
@@ -124,10 +139,11 @@ void cmdParse(int argc , char* argv[])
                     printf( "Missing artificial inteligence for some players!\n" );
                     exit(-1);   
                 }
-                char execute [80];
-                sprintf(execute," g++ -o player%d Agents/%s && ./player%d",j,argv[i+j],j);
-                std::cout << execute << std::endl;
-                system(execute);
+                int cx;
+                cx = snprintf ( executes[j-1], 15, "./%s", argv[i+j]);
+                
+                p_comm[j-1] = std::thread(connect_thread, (j-1));
+                p_comm[j-1].join(); 
             }
         }
         else if( strcmp(argv[i], "-m") == 0 )
@@ -135,7 +151,6 @@ void cmdParse(int argc , char* argv[])
             manual_Player = player1;
         }
     }
-    std::cout << num_Players << std::endl;
 }
 
 void init_Players()
@@ -157,5 +172,4 @@ void init_Players()
         all_Players.insert(all_Players.begin(),player1);
         tmp_num_Players--;
     }
-        std::cout << "Size:" << all_Players.size() << std::endl;
 }

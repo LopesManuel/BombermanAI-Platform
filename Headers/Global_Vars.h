@@ -7,12 +7,15 @@
 #include <vector>    
 #include <deque>
 #include <string>
+#include <sstream>
 #include <cassert> 
 //Using SDL and standard IO 
 #include <SDL2/SDL.h> 
 #include <stdio.h> 
 //Using threads to handle communications
- #include <thread>
+#include <thread>
+//For using fork()
+#include <unistd.h>
 
 //Screen dimension constants 
 extern const int SCREEN_WIDTH;
@@ -59,13 +62,33 @@ enum Actions
   FIRE
 };
 
-// Tiles
+// Game tiles
 enum Tiles
 {
   EXPLOSION = 'e',
-  WALL = '*',
-  STONE = '+',
-  BOMB = 'x',
-  GRASS = '0'
+  WALL      = '*',
+  STONE     = '+',
+  BOMB      = 'x',
+  GRASS     = '0'
 };
+
+/******************* COMMUNICATIONS **********************/
+//Group of threads to handle player's communication
+extern std::thread* p_comm;
+
+extern char executes[4][15];
+
+extern int  fdread[4][2];
+extern int  fdwrite[4][2];
+
+// Communication protocol
+enum Protocol
+{
+    CONNECT   = 'C', // State of the connection
+    MAP       = 'M', // World map
+    LIFE      = 'L', // State of the players life
+    POSITIONS = 'P' // Every players positions 
+};
+
+
 #endif

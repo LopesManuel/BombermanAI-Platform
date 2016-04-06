@@ -1,5 +1,5 @@
 #OBJS specifies which files to compile as part of the project 
-OBJS = SDL_Handler.cpp Player.cpp Map.cpp Bomb.cpp main.cpp 
+OBJS = SDL_Handler.cpp Player.cpp Map.cpp Bomb.cpp Communicator.cpp main.cpp 
 
 #OBJ_NAME specifies the name of our exectuable 
 OBJ_NAME = main 
