@@ -37,14 +37,15 @@ int NUM_COLS; //width
 int NUM_ROWS; //height
 // Number of active players
 int NUM_PLAYERS;
-// Player's position
-int x;
-int y; 
+// Players' position
+int *x;
+int *y; 
 
 //Helper functions
 bool connect();
 bool update_Map();
 bool update_Positions();
+void next_action();
 
 int main()
 {
@@ -57,11 +58,16 @@ int main()
         {
             world_Map[i] = (char*) std::malloc(sizeof(char) * NUM_COLS);
         }
+        //Allocate space for players positions
+        x = (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
+        y = (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
         //Game loop
         while( !gameover )
         {
             gameover = update_Map();
             gameover = update_Positions();
+            // AI agents get next action
+            next_action();
         }
     }
     return 0;
@@ -135,14 +141,24 @@ bool update_Positions()
     char pmesg;
     iss >> pmesg;
     if (pmesg == POSITIONS){
-        iss >> x;
-        iss >> y;
-        std::cout << "UP"; 
+        for( int i = 0; i < NUM_PLAYERS; i++){
+            iss >> x[i];
+            iss >> y[i];
+        }
     }
     else
     {
         std::cout << "ERROR CONNECTING" << std::endl; 
-        return false;
+        return true;// gameover ? 
     }
-    return true;
+    return false;// gameover ? 
+}
+
+/* AI agents next action */
+void next_action(){
+    /* generate random action: */
+    int action = rand() % 4;
+        
+    /* Print action to send to server */
+    std::cout << action;
 }

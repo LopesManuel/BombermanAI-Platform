@@ -10,6 +10,8 @@ const int SPRITE_SIZE   = 32;
 const int NUM_COLS = SCREEN_WIDTH / SPRITE_SIZE;
 const int NUM_ROWS = SCREEN_HEIGHT / SPRITE_SIZE;
 
+int speed;
+
 // Global logic 
 int gameover = 0;
 
@@ -92,7 +94,7 @@ int main ( int argc, char *argv[] )
             //Sends updates to AI agents
             send_Map();
             //Sends player's positions and receives movements
-            get_Action(all_Players);
+            get_Action(all_Players, map);
             
 			//Update the surface
 			SDL_UpdateWindowSurface( gWindow );
@@ -149,6 +151,10 @@ void cmdParse(int argc , char* argv[])
         else if( strcmp(argv[i], "-m") == 0 )
         {
             manual_Player = player1;
+        }
+        else if( strcmp(argv[i], "-s") == 0 )
+        {
+            speed = atoi(argv[i+1]);
         }
     }
 }

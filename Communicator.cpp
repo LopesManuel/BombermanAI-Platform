@@ -142,22 +142,25 @@ void send_Map()
     }
 }
 
-int* get_Action(std::vector<Player*> players){
-    
-    for ( int i = 0; i < players.size(); i++)
+int* get_Action(std::vector<Player*> players, Map *map){
+    int rv;
+    int MAXLINE = 30;
+    char line[MAXLINE];
+    char server_msg[MAXLINE];
+    //Create a string with P Player.x Player.y
+    char conn = POSITIONS;
+    std::ostringstream oss;
+    oss << conn << " " ;
+    for ( int i = 0; i < num_Players; i++)
     {
-        int rv;
-        int MAXLINE = 15;
-        char line[MAXLINE];
-        //Create a string with P Player.x Player.y
-        char conn = POSITIONS;
-        std::ostringstream oss;
-        oss << conn << " " << players[i]->get_mapX() << " "  << players[i]->get_mapY() << std::endl;
-        std::string var = oss.str();
-        char server_msg[MAXLINE];
-        strncpy(server_msg, var.c_str(), sizeof(server_msg));
-
-
+        oss << " " << players[i]->get_mapX() << " "  << players[i]->get_mapY();
+    }
+    oss << std::endl;
+    std::string var = oss.str();
+    strncpy(server_msg, var.c_str(), sizeof(server_msg));
+    
+    for ( int i = 0; i < num_Players; i++)
+    {
         if ( write(fdwrite[i][1], server_msg, strlen(server_msg) ) != strlen(server_msg) )
         {
             std::cerr << "WRITE ERROR FROM PIPE WHILE SENDING POSITIONS" << std::endl;
@@ -178,11 +181,33 @@ int* get_Action(std::vector<Player*> players){
                 line[rv] = '\0';
         }while ( rv  == -1 ) ; 
         
-        std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
-        if( strcmp (line, "UP") != 0)
+        //std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
+        
+        switch (atoi(line)) 
         {
-            std::cerr << "Connection error with player "<< i+1 << std::endl;
-            exit(-1);
+				case LEFT:
+                    if(players[i] != NULL && map->can_Move(players[i], -1) && players[i]->is_Alive())
+    					players[i]->move(LEFT);
+					break;
+				case RIGHT:
+                    if(players[i] != NULL && map->can_Move(players[i], 1) && players[i]->is_Alive())
+    					players[i]->move(RIGHT);
+					break;
+				case UP:
+                    if(players[i] != NULL && map->can_Move(players[i], -NUM_COLS) && players[i]->is_Alive())
+    					players[i]->move(UP);
+					break;
+				case DOWN:
+                    if(players[i] != NULL && map->can_Move(players[i], NUM_COLS) && players[i]->is_Alive())
+					   players[i]->move(DOWN);
+					break;
+                case FIRE:
+                    if(players[i] != NULL && map->can_Move(players[i], 0) && players[i]->is_Alive()) 
+                    {   // Can only plant 1 bomb per location 
+                        Bomb* temp = new Bomb(players[i]->get_X(), players[i]->get_Y(), 3);
+                        map->add_bomb(temp);
+                    }
+                    break;
         }
     }
     return NULL;

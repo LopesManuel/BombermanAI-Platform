@@ -12,6 +12,6 @@ void connect_thread(int i );
 
 void send_Map();
 
-int* get_Action(std::vector<Player*> players);
+int* get_Action(std::vector<Player*> players, Map *map);
 
 #endif
