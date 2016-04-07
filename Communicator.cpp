@@ -111,7 +111,7 @@ void send_Map()
     strncpy(server_msg, var.c_str(), sizeof(server_msg));
     server_msg[sizeof(server_msg)-1] = '\n';
 
-    for ( int i = 0; i < num_Players; i++)
+    for ( int i = 0; i < connected; i++)
     {
         if ( write(fdwrite[i][1], server_msg, strlen(server_msg) ) != strlen(server_msg) )
         {
@@ -159,7 +159,7 @@ int* get_Action(std::vector<Player*> players, Map *map){
     std::string var = oss.str();
     strncpy(server_msg, var.c_str(), sizeof(server_msg));
     
-    for ( int i = 0; i < num_Players; i++)
+    for ( int i = 0; i < connected; i++)
     {
         if ( write(fdwrite[i][1], server_msg, strlen(server_msg) ) != strlen(server_msg) )
         {

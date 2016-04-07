@@ -75,11 +75,13 @@ enum Tiles
 /******************* COMMUNICATIONS **********************/
 //Group of threads to handle player's communication
 extern std::thread* p_comm;
-
+//Comands to execute the ai agent program
 extern char executes[4][15];
-
+//File descriptores 
 extern int  fdread[4][2];
 extern int  fdwrite[4][2];
+//Number of AI agents connected
+extern int connected; 
 
 // Communication protocol
 enum Protocol
@@ -89,6 +91,7 @@ enum Protocol
     LIFE      = 'L', // State of the players life
     POSITIONS = 'P' // Every players positions 
 };
+
 
 
 #endif

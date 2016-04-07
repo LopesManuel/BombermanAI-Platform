@@ -32,10 +32,11 @@ Player* player4 = new Player("Images/player2.bmp" , 18, 1);
 std::vector<Player*> all_Players;
 
 //Number of active players
-int num_Players = 2;
+int num_Players = 0;
 
 //Manual player, receives input from keyboard
 Player *manual_Player;
+int manual_Player_id = -1;
 
 //Holds world map vector
 char* world_Map = (char*) malloc(sizeof(char) * ((NUM_COLS) * (NUM_ROWS) ));
@@ -53,6 +54,8 @@ char executes[4][15];
 // File descriptores 
 int  fdread[4][2];
 int  fdwrite[4][2];
+//Number of AI agents connected
+int connected = 0; 
 
 //Parses the comands from shell
 void cmdParse(int argc , char* argv[]);
@@ -86,7 +89,7 @@ int main ( int argc, char *argv[] )
 		{
 			/* look for an event */
 			if (SDL_PollEvent(&event) ){
-				handle_Events(event, map, all_Players.front());
+				handle_Events(event, map, manual_Player);
 			}
             map->update_Game(all_Players);         
             draw_Map(map);
@@ -95,7 +98,6 @@ int main ( int argc, char *argv[] )
             send_Map();
             //Sends player's positions and receives movements
             get_Action(all_Players, map);
-            
 			//Update the surface
 			SDL_UpdateWindowSurface( gWindow );
 		}
@@ -141,16 +143,33 @@ void cmdParse(int argc , char* argv[])
                     printf( "Missing artificial inteligence for some players!\n" );
                     exit(-1);   
                 }
+                else if( argv[i+j][0] == '-'){
+                    printf( "Not enough AI agents passed!\n" );
+                    exit(-1);   
+                }
                 int cx;
                 cx = snprintf ( executes[j-1], 15, "./%s", argv[i+j]);
                 
                 p_comm[j-1] = std::thread(connect_thread, (j-1));
                 p_comm[j-1].join(); 
+                connected++;
             }
         }
         else if( strcmp(argv[i], "-m") == 0 )
         {
-            manual_Player = player1;
+            if ( connected == 4)
+            {
+                printf( "Can't add manual player! Max number of players is 4!\n" );   
+            }
+            else if ( connected == 0)
+            {
+                printf( "-p flag should come first than -m!\n" );
+                exit(-1);   
+            }
+            else{
+                manual_Player_id = connected;
+                num_Players++;
+            }
         }
         else if( strcmp(argv[i], "-s") == 0 )
         {
@@ -177,5 +196,8 @@ void init_Players()
     if( tmp_num_Players == 1){
         all_Players.insert(all_Players.begin(),player1);
         tmp_num_Players--;
+    }
+    if ( manual_Player_id != -1){
+         manual_Player = all_Players[manual_Player_id];
     }
 }

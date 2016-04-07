@@ -14,7 +14,7 @@ Map::Map(char* m )
 bool Map::can_Move(Player* player, int movement)
 {
     int player_position = player->get_mPosition();
-    if( map[ player_position + movement] == EXPLOSION){
+    if( player->is_Alive() && map[ player_position + movement] == EXPLOSION){
         player->die();
         num_Players--;
     }
@@ -70,7 +70,7 @@ void Map::update_Game(std::vector<Player*> players)
 		{
             if( map[p->get_mPosition()] == EXPLOSION ){
                 p->die();
-                num_Players--;			
+                num_Players--;	
             }
 		}
 	}  
