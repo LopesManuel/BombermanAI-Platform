@@ -24,12 +24,15 @@ enum Actions
 // Game tiles
 enum Tiles
 {
-    EXPLOSION = 'e',
-    WALL      = '*',
-    STONE     = '+',
-    BOMB      = 'x',
-    GRASS     = '0'
+  EXPLOSION = 'e',
+  WALL      = '*',
+  STONE     = '+',
+  BOMB      = 'x',
+  GRASS     = '0',
+  STONE_PUP = '-',
+  PUP       = 'p'
 };
+
 //Holds world map matrix
 char **world_Map;
 // World map width and height
@@ -39,12 +42,14 @@ int NUM_ROWS; //height
 int NUM_PLAYERS;
 // Players' position
 int *x;
-int *y; 
+int *y;
+// Players' ranges
+int *r; 
 
 //Helper functions
 bool connect();
 bool update_Map();
-bool update_Positions();
+bool update_Positions_And_Ranges();
 void next_action();
 
 int main()
@@ -61,11 +66,12 @@ int main()
         //Allocate space for players positions
         x = (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
         y = (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
+        r = (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
         //Game loop
         while( !gameover )
         {
             gameover = update_Map();
-            gameover = update_Positions();
+            gameover = update_Positions_And_Ranges();
             // AI agents get next action
             next_action();
         }
@@ -130,8 +136,8 @@ bool update_Map()
     return false; // gameover ? 
 }
 
-/* Receives and updates all players positions */
-bool update_Positions()
+/* Receives and updates all players positions and ranges*/
+bool update_Positions_And_Ranges()
 {
     std::string mesg;
     //Get line from pipe input
@@ -142,8 +148,9 @@ bool update_Positions()
     iss >> pmesg;
     if (pmesg == POSITIONS){
         for( int i = 0; i < NUM_PLAYERS; i++){
-            iss >> x[i];
-            iss >> y[i];
+            iss >> x[i]; // x position 
+            iss >> y[i]; // y position
+            iss >> r[i]; // ranges
         }
     }
     else

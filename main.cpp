@@ -128,15 +128,32 @@ void cmdParse(int argc , char* argv[])
                 exit(-1);   
             }
             p_comm = new std::thread[np];
-            num_Players = np;
+            num_Players += np;
+            connected = np;
         }
         else if( strcmp(argv[i], "-l") == 0 )
         {
             level = argv[i+1];
         }
+        else if( strcmp(argv[i], "-m") == 0 )
+        {
+            if ( connected != 0)
+            {
+                printf( "-m flag should come first than -p and -n!\n" );
+                exit(-1);   
+            }
+            else{
+                num_Players++;
+            }
+        }
+        else if( strcmp(argv[i], "-s") == 0 )
+        {
+            speed = atoi(argv[i+1]);
+        }
         else if ( strcmp(argv[i], "-p") == 0 )
         {
-            for ( int j = 1; j <= num_Players; j++)
+            //Create a thread for each AI agent
+            for ( int j = 1; j <= connected; j++)
             {
                 if(argv[i+j] == NULL)
                 {
@@ -152,28 +169,16 @@ void cmdParse(int argc , char* argv[])
                 
                 p_comm[j-1] = std::thread(connect_thread, (j-1));
                 p_comm[j-1].join(); 
-                connected++;
             }
-        }
-        else if( strcmp(argv[i], "-m") == 0 )
-        {
-            if ( connected == 4)
+            //Check if the number of players is less than 4 
+            if( num_Players > 4 )
             {
-                printf( "Can't add manual player! Max number of players is 4!\n" );   
+                printf( "Can't add manual player! Max number of players is 4!\n" );    
             }
-            else if ( connected == 0)
+            else
             {
-                printf( "-p flag should come first than -m!\n" );
-                exit(-1);   
+                manual_Player_id = connected;    
             }
-            else{
-                manual_Player_id = connected;
-                num_Players++;
-            }
-        }
-        else if( strcmp(argv[i], "-s") == 0 )
-        {
-            speed = atoi(argv[i+1]);
         }
     }
 }

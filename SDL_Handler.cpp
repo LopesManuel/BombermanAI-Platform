@@ -33,9 +33,9 @@ void handle_Events(SDL_Event event, Map *map, Player *manual_Player)
 					   manual_Player->move(DOWN);
 					break;
                 case SDLK_SPACE:
-                    if(manual_Player != NULL && map->can_Move(manual_Player, 0) && manual_Player->is_Alive()) 
+                    if(manual_Player != NULL && map->can_Move(manual_Player, 0) && manual_Player->is_Alive() && manual_Player->can_Place()) 
                     {   // Can only plant 1 bomb per location 
-                        Bomb* temp = new Bomb(manual_Player->get_X(), manual_Player->get_Y(), 3);
+                        Bomb* temp = new Bomb(manual_Player);
                         map->add_bomb(temp);
                     }
                     break;
@@ -109,6 +109,8 @@ void close()
 	SDL_FreeSurface(stone);
 	SDL_FreeSurface(bomb);
 	SDL_FreeSurface(explosion);	
+    SDL_FreeSurface(bomb_pu);	
+    SDL_FreeSurface(range_pu);	
     
 	//Deallocate surface
 	SDL_FreeSurface( gScreenSurface );
@@ -137,7 +139,9 @@ bool load_Media(char* lvl)
 	stone = bitmap_Loader("Images/stone_wall.bmp");
     bomb = bitmap_Loader("Images/bomb.bmp");
     explosion = bitmap_Loader("Images/explosion.bmp");
-	
+    bomb_pu = bitmap_Loader("Images/bomb_powerup.bmp");
+    range_pu = bitmap_Loader("Images/range_powerup.bmp");
+    
     return success;
 }
 void draw_Player(std::vector<Player*> players)
@@ -169,7 +173,7 @@ void draw_Map(Map *map)
 				SDL_BlitSurface(wall, NULL, gScreenSurface, &rcPosition);
 			else if (ch == GRASS)
 				SDL_BlitSurface(grass, NULL, gScreenSurface, &rcPosition);
-			else if (ch == STONE)
+			else if (ch == STONE || ch == STONE_PUP)
 				SDL_BlitSurface(stone, NULL, gScreenSurface, &rcPosition);
             else if (ch == BOMB){
    				SDL_BlitSurface(grass, NULL, gScreenSurface, &rcPosition);
@@ -185,6 +189,14 @@ void draw_Map(Map *map)
 	           int colorkey = SDL_MapRGB(gScreenSurface->format, 255, 0, 255);
 	           SDL_SetColorKey(explosion, SDL_TRUE | SDL_RLEACCEL, colorkey);
             	SDL_BlitSurface(explosion, NULL, gScreenSurface, &rcPosition);
+            }
+	        else if (ch == BOMB_PUP)
+            { 
+			     SDL_BlitSurface(bomb_pu, NULL, gScreenSurface, &rcPosition);         
+            }
+	        else if (ch == RANGE_PUP)
+            { 
+			     SDL_BlitSurface(range_pu, NULL, gScreenSurface, &rcPosition);         
             }
 		}
 	}	

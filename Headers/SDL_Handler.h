@@ -41,5 +41,7 @@ static SDL_Surface* wall;
 static SDL_Surface* stone;
 static SDL_Surface* bomb;
 static SDL_Surface* explosion;
+static SDL_Surface* bomb_pu;
+static SDL_Surface* range_pu;
 
 #endif

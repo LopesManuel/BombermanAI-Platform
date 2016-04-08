@@ -31,3 +31,13 @@ void Player::move( int direction )
     map_x = x / SPRITE_SIZE;
     map_y = y / SPRITE_SIZE;
 }
+
+bool Player::can_Place()
+{
+    if( num_bombs < max_num_boms)
+    {
+        num_bombs++;
+        return true;
+    }    
+    return false;
+}

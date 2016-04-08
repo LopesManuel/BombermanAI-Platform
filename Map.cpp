@@ -18,7 +18,7 @@ bool Map::can_Move(Player* player, int movement)
         player->die();
         num_Players--;
     }
-    if( map[ player_position + movement] == GRASS)
+    if( map[ player_position + movement] == GRASS || map[ player_position + movement] == BOMB_PUP ||  map[ player_position + movement] == RANGE_PUP)
         return true;
    
     return false;     
@@ -72,6 +72,14 @@ void Map::update_Game(std::vector<Player*> players)
                 p->die();
                 num_Players--;	
             }
+            else if( map[p->get_mPosition()] == BOMB_PUP){
+                p->increase_Max_Bombs();
+                map[p->get_mPosition()] = GRASS;
+            }
+            else if (  map[p->get_mPosition()] == RANGE_PUP ){
+                p->increase_Range();
+                map[p->get_mPosition()] = GRASS;
+            }
 		}
 	}  
 }
@@ -96,11 +104,26 @@ void Map::explode(int pos, int range, int direction)
     for ( int i = 0; i < range; i++){
         if ( map[pos + i * direction] == GRASS)
             map[pos + i * direction] = EXPLOSION;
-        if ( map[pos + i * direction] == WALL || map[pos + i * direction] == BOMB ) 
+        else if ( map[pos + i * direction] == WALL || map[pos + i * direction] == BOMB ) 
             break; 
-        if( map[pos + i * direction] == STONE ) 
+        else if( map[pos + i * direction] == STONE ) 
         {
             map[pos + i * direction] = EXPLOSION;
+            break;
+        }
+        else if( map[pos + i * direction] == STONE_PUP)
+        {
+
+            int randpu = rand() % 2;
+            switch (randpu)
+            {
+                case 0:
+                    map[pos + i * direction] = BOMB_PUP;
+                    break;
+                case 1:
+                    map[pos + i * direction] = RANGE_PUP;
+                    break;
+            }
             break;
         }
     }

@@ -144,7 +144,7 @@ void send_Map()
 
 int* get_Action(std::vector<Player*> players, Map *map){
     int rv;
-    int MAXLINE = 30;
+    int MAXLINE = 40;
     char line[MAXLINE];
     char server_msg[MAXLINE];
     //Create a string with P Player.x Player.y
@@ -153,12 +153,12 @@ int* get_Action(std::vector<Player*> players, Map *map){
     oss << conn << " " ;
     for ( int i = 0; i < num_Players; i++)
     {
-        oss << " " << players[i]->get_mapX() << " "  << players[i]->get_mapY();
+        oss << " " << players[i]->get_mapX() << " "  << players[i]->get_mapY() << " " << players[i]->get_Range();
     }
     oss << std::endl;
     std::string var = oss.str();
     strncpy(server_msg, var.c_str(), sizeof(server_msg));
-    
+
     for ( int i = 0; i < connected; i++)
     {
         if ( write(fdwrite[i][1], server_msg, strlen(server_msg) ) != strlen(server_msg) )
@@ -170,18 +170,18 @@ int* get_Action(std::vector<Player*> players, Map *map){
             rv = read(fdread[i][0], line, MAXLINE);
             if ( rv < 0 )
             {
-                std::cerr << "READ ERROR FROM PIPE WHILE SENDING POSITIONS" << std::endl;
+                std::cerr << "READ ERROR FROM PIPE WHILE READING ACTION" << std::endl;
             }
             else if (rv == 0)
             {
-                std::cerr << "Child Closed Pipe WHILE SENDING POSITIONS" << std::endl;
+                std::cerr << "Child Closed Pipe -function: get_Action()" << std::endl;
                 return NULL;
             }
             else
                 line[rv] = '\0';
         }while ( rv  == -1 ) ; 
         
-        //std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
+      //std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
         
         switch (atoi(line)) 
         {
@@ -202,9 +202,9 @@ int* get_Action(std::vector<Player*> players, Map *map){
 					   players[i]->move(DOWN);
 					break;
                 case FIRE:
-                    if(players[i] != NULL && map->can_Move(players[i], 0) && players[i]->is_Alive()) 
+                    if(players[i] != NULL && map->can_Move(players[i], 0) && players[i]->is_Alive() && players[i]->can_Place()) 
                     {   // Can only plant 1 bomb per location 
-                        Bomb* temp = new Bomb(players[i]->get_X(), players[i]->get_Y(), 3);
+                        Bomb* temp = new Bomb(players[i]);
                         map->add_bomb(temp);
                     }
                     break;

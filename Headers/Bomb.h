@@ -2,11 +2,12 @@
 #define __BOMB_H__
 
 #include "Global_Vars.h"
+#include "Player.h"
 
 class Bomb
 {
 public:
-	Bomb(int pos_x, int pos_y, int range);
+	Bomb(Player* p);
 	~Bomb();
     
   	//Returns Bomb position in the world vector
@@ -32,6 +33,8 @@ public:
    	//Returns skin path file
 	const char* get_Skin(); 
 private:
+    //Player who placed the bomb
+    Player *father; 
 	//Position (x,y) on screen
 	int x;
 	int y;
@@ -39,8 +42,8 @@ private:
     int map_x;
     int map_y;
 	//Bomb's life 1000 = 1s
-	int turns_2explode = 5000;
-	int turns_2disapear = 2000;
+	int turns_2explode = 4000;
+	int turns_2disapear = 1000;
 	//Path to skin file
 	const char* skin = "bomb.bmp";
     //Path to explosion skin file
@@ -49,7 +52,7 @@ private:
     int range;
     //To check if there is a need to draw the bomb
     bool life;
-    //
+    //Bool to show explosion skin
     bool explode;
 };
 

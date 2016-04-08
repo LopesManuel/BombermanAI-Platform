@@ -1,12 +1,13 @@
 #include "Bomb.h"
 
-Bomb::Bomb(int pos_x, int pos_y, int r)
+Bomb::Bomb(Player *p)
 {   
-	x = pos_x;
-	y = pos_y;
-    map_x = pos_x / SPRITE_SIZE;
-    map_y = pos_y / SPRITE_SIZE;
-	range = r;
+    father = p;
+	x = p->get_X();
+	y = p->get_Y();
+    map_x = x / SPRITE_SIZE;
+    map_y = y / SPRITE_SIZE;
+	range = p->get_Range();
     life = true;
     explode = false;
 }
@@ -22,6 +23,7 @@ bool Bomb::update()
         if ( turns_2explode < 0 )
         {
             explode = true;
+            father->bomb_Exploded();
         }
     }
     else

@@ -62,15 +62,23 @@ enum Actions
   FIRE
 };
 
-// Game tiles
+// Game tiles' sprite
 enum Tiles
 {
   EXPLOSION = 'e',
   WALL      = '*',
   STONE     = '+',
   BOMB      = 'x',
-  GRASS     = '0'
+  GRASS     = '0',
+  STONE_PUP = '-',
 };
+// Game power up tiles
+enum PowerUps
+{
+    BOMB_PUP  = 'b',
+    RANGE_PUP = 'r'  
+};
+
 
 /******************* COMMUNICATIONS **********************/
 //Group of threads to handle player's communication
@@ -89,7 +97,7 @@ enum Protocol
     CONNECT   = 'C', // State of the connection
     MAP       = 'M', // World map
     LIFE      = 'L', // State of the players life
-    POSITIONS = 'P' // Every players positions 
+    POSITIONS = 'P', // Every players' positions 
 };
 
 
