@@ -62,6 +62,9 @@ void cmdParse(int argc , char* argv[]);
 //Initializes the players that are going to play
 void init_Players();
 
+void comm_thread(int i );
+
+
 int main ( int argc, char *argv[] )
 {
     //Parse comands
@@ -84,6 +87,13 @@ int main ( int argc, char *argv[] )
 	{			
         map = new Map(world_Map);
 
+            
+        //Create a thread for each AI agent
+        for ( int j = 1; j <= connected; j++)
+        {
+            //Sends map updates to AI agents
+            p_comm[j-1] = std::thread(comm_thread, j-1);
+        }
 		/* message pump */
 		while (!gameover  && num_Players > 1 )
 		{
@@ -94,14 +104,10 @@ int main ( int argc, char *argv[] )
             map->update_Game(all_Players);         
             draw_Map(map);
             draw_Player(all_Players);
-            //Sends updates to AI agents
-            send_Map();
-            //Sends player's positions and receives movements
-            get_Action(all_Players, map);
 			//Update the surface
 			SDL_UpdateWindowSurface( gWindow );
 		}
-        const char * winner =  map->who_Won(all_Players);
+        int winner =  map->who_Won(all_Players);
         if ( winner == NULL)
             std::cout << "Draw!!" << std::endl;
         else
@@ -204,5 +210,16 @@ void init_Players()
     }
     if ( manual_Player_id != -1){
          manual_Player = all_Players[manual_Player_id];
+    }
+}
+
+
+void comm_thread(int i ) 
+{    
+    while(!gameover  && num_Players > 1)
+    {
+        send_Map(i);
+        
+         get_Action(i, all_Players, map);
     }
 }

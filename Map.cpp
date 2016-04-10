@@ -84,13 +84,14 @@ void Map::update_Game(std::vector<Player*> players)
 	}  
 }
 
-const char* Map::who_Won(std::vector<Player*> players)
+int Map::who_Won(std::vector<Player*> players)
 {
-    for ( Player* p : players)
+    for (int i; i < players.size(); i++) 
     {
+        Player* p = players[i];
 		if( p != NULL && p->is_Alive())
 		{
-            return p->get_Skin();
+            return  i;
 		}
 	}  
     return NULL;

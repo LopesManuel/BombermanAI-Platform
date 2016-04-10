@@ -10,8 +10,8 @@
  * pipe connection with the created agents, and sends Width and H*/
 void connect_thread(int i );
 
-void send_Map();
+void send_Map(int i);
 
-int* get_Action(std::vector<Player*> players, Map *map);
+void get_Action(int i, std::vector<Player*> players, Map *map);
 
 #endif

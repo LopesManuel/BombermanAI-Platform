@@ -55,7 +55,7 @@ void connect_thread(int i )
         //Create a string with CONNECT NUM_COLS NUM_ROWS
         char conn = CONNECT;
         std::ostringstream oss;
-        oss << conn << " " << NUM_COLS << " "  << NUM_ROWS << " "  << num_Players << std::endl;
+        oss << conn << " " << NUM_COLS << " "  << NUM_ROWS << " "  << num_Players << " " << i<< std::endl;
         std::string var = oss.str();
         char server_msg[MAXLINE];
         strncpy(server_msg, var.c_str(), sizeof(server_msg));
@@ -93,7 +93,7 @@ void connect_thread(int i )
     }
 }
 
-void send_Map()
+void send_Map(int i)
 {
     int rv;
     int MAXLINE = NUM_COLS*NUM_ROWS;
@@ -111,38 +111,36 @@ void send_Map()
     strncpy(server_msg, var.c_str(), sizeof(server_msg));
     server_msg[sizeof(server_msg)-1] = '\n';
 
-    for ( int i = 0; i < connected; i++)
+    if ( write(fdwrite[i][1], server_msg, strlen(server_msg) ) != strlen(server_msg) )
     {
-        if ( write(fdwrite[i][1], server_msg, strlen(server_msg) ) != strlen(server_msg) )
-        {
-            std::cerr << "WRITE ERROR FROM PIPE WHILE SENDING MAP" << std::endl;
-        }
-        do  //WAITS FOR COMMUNICATION -- EWOULDBLOCK
-        {
-            rv = read(fdread[i][0], line, MAXLINE);
-            if ( rv < 0 )
-            {
-                std::cerr << "READ ERROR FROM PIPE WHILE SENDING MAP" << std::endl;
-            }
-            else if (rv == 0)
-            {
-                std::cerr << "Child Closed Pipe WHILE SENDING MAP" << std::endl;
-                return;
-            }
-            else
-                line[rv] = '\0';
-        }while ( rv  == -1 ) ; 
-        
-       // std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
-        if( strcmp (line, "RECEIVED") != 0)
-        {
-            std::cerr << "Connection error with player "<< i+1 << std::endl;
-            exit(-1);
-        }
+        std::cerr << "WRITE ERROR FROM PIPE WHILE SENDING MAP" << std::endl;
     }
+    do  //WAITS FOR COMMUNICATION -- EWOULDBLOCK
+    {
+        rv = read(fdread[i][0], line, MAXLINE);
+        if ( rv < 0 )
+        {
+            std::cerr << "READ ERROR FROM PIPE WHILE SENDING MAP" << std::endl;
+        }
+        else if (rv == 0)
+        {
+            std::cerr << "Child Closed Pipe WHILE SENDING MAP" << std::endl;
+            return;
+        }
+        else
+            line[rv] = '\0';
+    }while ( rv  == -1 ) ; 
+    
+  //  std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
+    if( strcmp (line, "RECEIVED") != 0)
+    {
+        std::cerr << "Connection error with player "<< i+1 << std::endl;
+        exit(-1);
+    }
+    
 }
 
-int* get_Action(std::vector<Player*> players, Map *map){
+void get_Action(int i, std::vector<Player*> players, Map *map){
     int rv;
     int MAXLINE = 40;
     char line[MAXLINE];
@@ -151,64 +149,61 @@ int* get_Action(std::vector<Player*> players, Map *map){
     char conn = POSITIONS;
     std::ostringstream oss;
     oss << conn << " " ;
-    for ( int i = 0; i < num_Players; i++)
+    for ( int j = 0; j < num_Players; j++)
     {
-        oss << " " << players[i]->get_mapX() << " "  << players[i]->get_mapY() << " " << players[i]->get_Range();
+        oss << " " << players[j]->get_mapX() << " "  << players[j]->get_mapY() << " " << players[j]->get_Range();
     }
     oss << std::endl;
     std::string var = oss.str();
     strncpy(server_msg, var.c_str(), sizeof(server_msg));
 
-    for ( int i = 0; i < connected; i++)
+    if ( write(fdwrite[i][1], server_msg, strlen(server_msg) ) != strlen(server_msg) )
     {
-        if ( write(fdwrite[i][1], server_msg, strlen(server_msg) ) != strlen(server_msg) )
-        {
-            std::cerr << "WRITE ERROR FROM PIPE WHILE SENDING POSITIONS" << std::endl;
-        }
-        do  //WAITS FOR COMMUNICATION -- EWOULDBLOCK
-        {
-            rv = read(fdread[i][0], line, MAXLINE);
-            if ( rv < 0 )
-            {
-                std::cerr << "READ ERROR FROM PIPE WHILE READING ACTION" << std::endl;
-            }
-            else if (rv == 0)
-            {
-                std::cerr << "Child Closed Pipe -function: get_Action()" << std::endl;
-                return NULL;
-            }
-            else
-                line[rv] = '\0';
-        }while ( rv  == -1 ) ; 
-        
-      //std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
-        
-        switch (atoi(line)) 
-        {
-				case LEFT:
-                    if(players[i] != NULL && map->can_Move(players[i], -1) && players[i]->is_Alive())
-    					players[i]->move(LEFT);
-					break;
-				case RIGHT:
-                    if(players[i] != NULL && map->can_Move(players[i], 1) && players[i]->is_Alive())
-    					players[i]->move(RIGHT);
-					break;
-				case UP:
-                    if(players[i] != NULL && map->can_Move(players[i], -NUM_COLS) && players[i]->is_Alive())
-    					players[i]->move(UP);
-					break;
-				case DOWN:
-                    if(players[i] != NULL && map->can_Move(players[i], NUM_COLS) && players[i]->is_Alive())
-					   players[i]->move(DOWN);
-					break;
-                case FIRE:
-                    if(players[i] != NULL && map->can_Move(players[i], 0) && players[i]->is_Alive() && players[i]->can_Place()) 
-                    {   // Can only plant 1 bomb per location 
-                        Bomb* temp = new Bomb(players[i]);
-                        map->add_bomb(temp);
-                    }
-                    break;
-        }
+        std::cerr << "WRITE ERROR FROM PIPE WHILE SENDING POSITIONS" << std::endl;
     }
-    return NULL;
+    do  //WAITS FOR COMMUNICATION -- EWOULDBLOCK
+    {
+        rv = read(fdread[i][0], line, MAXLINE);
+        if ( rv < 0 )
+        {
+            std::cerr << "READ ERROR FROM PIPE WHILE READING ACTION" << std::endl;
+        }
+        else if (rv == 0)
+        {
+            std::cerr << "Child Closed Pipe -function: get_Action()" << std::endl;
+            exit(-1);
+        }
+        else
+            line[rv] = '\0';
+    }while ( rv  == -1 ) ; 
+    
+   // std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
+    
+    switch (atoi(line)) 
+    {
+            case LEFT:
+                if(players[i] != NULL && map->can_Move(players[i], -1) && players[i]->is_Alive())
+                    players[i]->move(LEFT);
+                break;
+            case RIGHT:
+                if(players[i] != NULL && map->can_Move(players[i], 1) && players[i]->is_Alive())
+                    players[i]->move(RIGHT);
+                break;
+            case UP:
+                if(players[i] != NULL && map->can_Move(players[i], -NUM_COLS) && players[i]->is_Alive())
+                    players[i]->move(UP);
+                break;
+            case DOWN:
+                if(players[i] != NULL && map->can_Move(players[i], NUM_COLS) && players[i]->is_Alive())
+                    players[i]->move(DOWN);
+                break;
+            case FIRE:
+                if(players[i] != NULL && map->can_Move(players[i], 0) && players[i]->is_Alive() && players[i]->can_Place()) 
+                {   // Can only plant 1 bomb per location 
+                    Bomb* temp = new Bomb(players[i]);
+                    map->add_bomb(temp);
+                }
+                break;
+    }
 }
+

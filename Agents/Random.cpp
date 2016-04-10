@@ -3,7 +3,6 @@
 #include <sstream>
 #include <unistd.h>
 #include <cstdlib>
-#include <math.h>
 #include <time.h>
 
 // Communication protocol
@@ -44,7 +43,6 @@ int NUM_ROWS; //height
 int NUM_PLAYERS;
 // Id of the current agent
 int PLAYER_ID;
-
 // Players' position
 int *x;
 int *y;
@@ -56,7 +54,6 @@ bool connect();
 bool update_Map();
 bool update_Positions_And_Ranges();
 int next_action();
-double distanceCalculate(int x1, int y1, int x2, int y2);
 
 int main()
 {
@@ -89,8 +86,7 @@ int main()
             diff  = ((float)t2-(float)t1);
             seconds = diff / CLOCKS_PER_SEC;
             if ( seconds <= 1 ){
-                /* 5 plays per second */
-                usleep((CLOCKS_PER_SEC/5)-seconds*(CLOCKS_PER_SEC/5));
+                usleep((CLOCKS_PER_SEC/4)-seconds*(CLOCKS_PER_SEC/4));
                 /* Print action to send to server */
                 std::cout << action;
             }
@@ -117,7 +113,7 @@ bool connect()
     iss >> NUM_ROWS;
     iss >> NUM_PLAYERS;
     iss >> PLAYER_ID; 
-    
+        
     if (pmesg == CONNECT){
         std::cout << "CONNECTED"; 
     }
@@ -186,44 +182,9 @@ bool update_Positions_And_Ranges()
     return false;// gameover ? 
 }
 
-double distanceCalculate(int x1, int y1, int x2, int y2)
-{
-    int x = x1 - x2;
-    int y = y1 - y2;
-    double dist;
-
-    dist = pow(x,2)+pow(y,2);           //calculating distance by euclidean formula
-    dist = sqrt(dist);                  //sqrt is function in math.h
-
-    return dist;
-}
-
-
 /* AI agents next action */
-int  next_action()
-{
+int  next_action(){
     /* generate random action: */
-    int action;
-    double min_dist = 9999.00;
-    int min_dist_pid = -1;
-    for ( int i = 0; i < NUM_PLAYERS; i++)
-    {
-        if( i != PLAYER_ID )
-        {
-            double tmp_dist = distanceCalculate(x[PLAYER_ID], y[PLAYER_ID], x[i], y[i]);
-            if ( tmp_dist < min_dist )
-            {
-                min_dist = tmp_dist;
-                min_dist_pid = i;
-            }
-        }
-    }
-
-    if ( y[min_dist_pid] < y[PLAYER_ID])
-        return UP;
-    else if ( y[min_dist_pid] > y[PLAYER_ID])
-        return DOWN;
-    else if ( x[min_dist_pid] < x[PLAYER_ID])
-        return LEFT;
-    return RIGHT;   
+    int action = rand() % 4;
+    return action;   
 }
