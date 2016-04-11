@@ -51,6 +51,8 @@ inline int mIndex( int x, int y)
 
 //Number of players active
 extern int num_Players;
+//Total number of starting players
+extern int num_SPlayers;
 
 // Player's possible actions
 enum Actions

@@ -149,9 +149,9 @@ void get_Action(int i, std::vector<Player*> players, Map *map){
     char conn = POSITIONS;
     std::ostringstream oss;
     oss << conn << " " ;
-    for ( int j = 0; j < num_Players; j++)
+    for ( int j = 0; j < num_SPlayers; j++)
     {
-        oss << " " << players[j]->get_mapX() << " "  << players[j]->get_mapY() << " " << players[j]->get_Range();
+        oss << " " << players[j]->get_mapX() << " "  << players[j]->get_mapY() << " " << players[j]->get_Range() << " " << players[j]->is_Alive();
     }
     oss << std::endl;
     std::string var = oss.str();
@@ -177,8 +177,12 @@ void get_Action(int i, std::vector<Player*> players, Map *map){
             line[rv] = '\0';
     }while ( rv  == -1 ) ; 
     
-   // std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
-    
+    //std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
+    if( strcmp (line, "TIMEOUT") == 0)
+    {
+        std::cerr << " Player "<< i+1 << " timed out" << std::endl;
+        players[i]->die();
+    }
     switch (atoi(line)) 
     {
             case LEFT:
@@ -206,4 +210,3 @@ void get_Action(int i, std::vector<Player*> players, Map *map){
                 break;
     }
 }
-

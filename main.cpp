@@ -27,12 +27,14 @@ SDL_Event event;
 //Players' holder
 Player* player1 = new Player("Images/player.bmp" , 1, 1);
 Player* player2 = new Player("Images/player2.bmp" , 18, 13);
-Player* player3 = new Player("Images/player2.bmp" , 1, 13);
+Player* player3 = new Player("Images/player.bmp" , 1, 13);
 Player* player4 = new Player("Images/player2.bmp" , 18, 1);
 std::vector<Player*> all_Players;
 
 //Number of active players
 int num_Players = 0;
+//Total number of starting players
+int num_SPlayers = 0;
 
 //Manual player, receives input from keyboard
 Player *manual_Player;
@@ -187,6 +189,7 @@ void cmdParse(int argc , char* argv[])
             }
         }
     }
+    num_SPlayers = num_Players;
 }
 
 void init_Players()

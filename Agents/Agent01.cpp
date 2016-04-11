@@ -50,6 +50,8 @@ int *x;
 int *y;
 // Players' ranges
 int *r; 
+// Who is alive  1 - alive || 0 - dead
+int *alive;
 
 //Helper functions
 bool connect();
@@ -77,6 +79,7 @@ int main()
         x = (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
         y = (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
         r = (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
+        alive = (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
         //Game loop
         while( !gameover )
         {
@@ -176,6 +179,7 @@ bool update_Positions_And_Ranges()
             iss >> x[i]; // x position 
             iss >> y[i]; // y position
             iss >> r[i]; // ranges
+            iss >> alive[i]; // is player i alive?
         }
     }
     else
@@ -208,7 +212,7 @@ int  next_action()
     int min_dist_pid = -1;
     for ( int i = 0; i < NUM_PLAYERS; i++)
     {
-        if( i != PLAYER_ID )
+        if( i != PLAYER_ID && alive[i])
         {
             double tmp_dist = distanceCalculate(x[PLAYER_ID], y[PLAYER_ID], x[i], y[i]);
             if ( tmp_dist < min_dist )
