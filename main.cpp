@@ -111,7 +111,7 @@ int main ( int argc, char *argv[] )
         if ( winner == NULL)
             std::cout << "Draw!!" << std::endl;
         else
-            std::cout << "Player " << winner << " won!! Congratulations!" << std::endl;
+            std::cout << "Player " << winner+1 << " won!! Congratulations!" << std::endl;
 	}
 
 	close();
