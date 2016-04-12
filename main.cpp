@@ -39,6 +39,8 @@ int num_SPlayers = 0;
 //Manual player, receives input from keyboard
 Player *manual_Player;
 int manual_Player_id = -1;
+//Number of AI agents connected
+int connected = 0; 
 
 //Holds world map vector
 char* world_Map = (char*) malloc(sizeof(char) * ((NUM_COLS) * (NUM_ROWS) ));
@@ -56,15 +58,18 @@ char executes[4][15];
 // File descriptores 
 int  fdread[4][2];
 int  fdwrite[4][2];
-//Number of AI agents connected
-int connected = 0; 
+
+// Log communicatior
+std::ofstream log_data;
+bool keep_log = false;
 
 //Parses the comands from shell
 void cmdParse(int argc , char* argv[]);
 //Initializes the players that are going to play
 void init_Players();
-
 void comm_thread(int i );
+void write_Log();
+std::string get_date(void);
 
 
 int main ( int argc, char *argv[] )
@@ -96,6 +101,8 @@ int main ( int argc, char *argv[] )
             //Sends map updates to AI agents
             p_comm[j-1] = std::thread(comm_thread, j-1);
         }
+        if ( keep_log )
+            write_Log();
 		/* message pump */
 		while (!gameover  && num_Players > 1 )
 		{
@@ -188,6 +195,11 @@ void cmdParse(int argc , char* argv[])
                 manual_Player_id = connected;    
             }
         }
+        else if ( strcmp(argv[i], "-log") == 0 )
+        {
+            std::cout << "LOG" << std::endl;
+            keep_log = true;
+        } 
     }
     num_SPlayers = num_Players;
 }
@@ -225,4 +237,44 @@ void comm_thread(int i )
         
          get_Action(i, all_Players, map);
     }
+}
+
+
+void write_Log()
+{
+    int serial_number = rand() % 9999;
+    char buffer [33];
+    std::sprintf(buffer,"%d",serial_number); 
+
+    std::string path = "Logs/log_";
+    path += buffer;
+    path += "_";
+    path += get_date();
+    std::cout << path << std::endl;
+    log_data.open(path);
+    log_data << "--------------------- LOG "<<  serial_number <<" ---------------------- \n" ;
+    log_data << "Number of players:" << num_Players << "\n";    
+    log_data << "Number of agents :" << connected << "\n";  
+    log_data << "Manual player id :" << manual_Player_id << "\n";  
+    log_data << "Screen height    :" << SCREEN_HEIGHT <<  " \t  Screen width    :" << SCREEN_WIDTH << "\n";    
+    log_data << "Numbr of collumns:" << NUM_COLS       << " \t  Numbr of rows   :" << NUM_ROWS << std::endl;    
+    log_data << "Map              :" << level << "\n";    
+    log_data << "-----------------------------------------------------\n";    
+}
+
+std::string get_date(void)
+{
+   time_t now;
+   char the_date[12];
+
+   the_date[0] = '\0';
+
+   now = time(NULL);
+
+   if (now != -1)
+   {
+      std::strftime(the_date, 12, "%d_%m_%Y", gmtime(&now));
+   }
+
+   return std::string(the_date);
 }

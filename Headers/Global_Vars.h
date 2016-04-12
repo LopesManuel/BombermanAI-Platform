@@ -80,7 +80,10 @@ enum PowerUps
     BOMB_PUP  = 'b',
     RANGE_PUP = 'r'  
 };
+/************************ LOG ****************************/
+extern std::ofstream log_data;
 
+extern bool keep_log;
 
 /******************* COMMUNICATIONS **********************/
 //Group of threads to handle player's communication

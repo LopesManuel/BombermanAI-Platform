@@ -110,7 +110,12 @@ void send_Map(int i)
     char server_msg[NUM_COLS*NUM_ROWS +3];
     strncpy(server_msg, var.c_str(), sizeof(server_msg));
     server_msg[sizeof(server_msg)-1] = '\n';
-
+    if( keep_log )
+    {
+        log_data << "--------------------- Map ---------------------- \n" ;
+        log_data << server_msg << "\n";
+        log_data << "---------------------------------------------------\n";    
+    }
     if ( write(fdwrite[i][1], server_msg, strlen(server_msg) ) != strlen(server_msg) )
     {
         std::cerr << "WRITE ERROR FROM PIPE WHILE SENDING MAP" << std::endl;
@@ -156,7 +161,11 @@ void get_Action(int i, std::vector<Player*> players, Map *map){
     oss << std::endl;
     std::string var = oss.str();
     strncpy(server_msg, var.c_str(), sizeof(server_msg));
-
+    
+    if( keep_log )
+    {
+        log_data << server_msg << "\n";
+    }
     if ( write(fdwrite[i][1], server_msg, strlen(server_msg) ) != strlen(server_msg) )
     {
         std::cerr << "WRITE ERROR FROM PIPE WHILE SENDING POSITIONS" << std::endl;
@@ -178,6 +187,10 @@ void get_Action(int i, std::vector<Player*> players, Map *map){
     }while ( rv  == -1 ) ; 
     
     //std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
+    if( keep_log )
+    {
+        log_data << "Player number "<< i+1 <<"  :" << line << "\n";
+    }
     if( strcmp (line, "TIMEOUT") == 0)
     {
         std::cerr << " Player "<< i+1 << " timed out" << std::endl;
