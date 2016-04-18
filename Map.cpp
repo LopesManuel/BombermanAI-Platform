@@ -174,29 +174,20 @@ void Map::explode(int pos, int range, int direction)
         else if( map[pos + i * direction] == STONE_PUP)
         {
 
-            int randpu = rand() % 6;
-            switch (randpu)
-            {
-                case 0:
-                    map[pos + i * direction] = BOMB_PUP;
-                    break;
-                case 1:
-                    map[pos + i * direction] = RANGE_PUP;
-                    break;
-                case 2:
-                    map[pos + i * direction] = GHOST_PUP;
-                    break;
-                case 3:
-                    map[pos + i * direction] = SPEED_PUP;
-                    break;
-                case 4:
-                    map[pos + i * direction] = SWITCH_PUP;
-                    break;
-                case 5:
-                    map[pos + i * direction] = SLIDE_PUP;
-                    break;
-            }
-            break;
+            int randpu = rand() % 100;
+            if( randpu < 30)
+                map[pos + i * direction] = BOMB_PUP;
+            else if( randpu < 60)
+                map[pos + i * direction] = RANGE_PUP;
+            else if ( randpu < 75)
+                map[pos + i * direction] = SPEED_PUP;
+            else if ( randpu < 80 )
+                map[pos + i * direction] = GHOST_PUP;
+            else if ( randpu < 90)
+                map[pos + i * direction] = SWITCH_PUP;
+            else if ( randpu < 100)
+                map[pos + i * direction] = SLIDE_PUP;
+            
         }
     }
 }
