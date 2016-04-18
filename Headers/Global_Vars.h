@@ -78,12 +78,18 @@ enum Tiles
 enum PowerUps
 {
     BOMB_PUP  = 'b',
-    RANGE_PUP = 'r'  
+    RANGE_PUP = 'r',
+    GHOST_PUP = 'g',
+    SPEED_PUP = 's',
+    SWITCH_PUP= 't',
+    SLIDE_PUP = 'l'
 };
 /************************ LOG ****************************/
 extern std::ofstream log_data;
 
 extern bool keep_log;
+
+extern int state;
 
 /******************* COMMUNICATIONS **********************/
 //Group of threads to handle player's communication

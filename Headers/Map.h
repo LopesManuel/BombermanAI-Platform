@@ -13,14 +13,16 @@ public:
     
     //Checks if the movement is valid
     bool can_Move(Player* player, int movement);
+    bool can_Slide(Bomb* bomb, int movement);
     //Subscripting [] operator overloading
     char &operator[](int i);
     // Updates game actions
-    void update_Game(std::vector<Player*> players);
+    bool update_Game(std::vector<Player*> players);
     // Handle all events related with the bombs
     void add_bomb(Bomb* temp){bombs->push_back(temp);};
     void clear_explosion(int pos, int range);
     void explode(int pos, int range, int direction);
+    void detonate(int player_id);
     //Returns the player that won    
     int who_Won(std::vector<Player*> players);
 

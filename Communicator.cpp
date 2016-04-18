@@ -110,12 +110,7 @@ void send_Map(int i)
     char server_msg[NUM_COLS*NUM_ROWS +3];
     strncpy(server_msg, var.c_str(), sizeof(server_msg));
     server_msg[sizeof(server_msg)-1] = '\n';
-    if( keep_log )
-    {
-        log_data << "--------------------- Map ---------------------- \n" ;
-        log_data << server_msg << "\n";
-        log_data << "---------------------------------------------------\n";    
-    }
+    // std::cout <<server_msg << std::endl;
     if ( write(fdwrite[i][1], server_msg, strlen(server_msg) ) != strlen(server_msg) )
     {
         std::cerr << "WRITE ERROR FROM PIPE WHILE SENDING MAP" << std::endl;
@@ -136,7 +131,7 @@ void send_Map(int i)
             line[rv] = '\0';
     }while ( rv  == -1 ) ; 
     
-  //  std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
+    //std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
     if( strcmp (line, "RECEIVED") != 0)
     {
         std::cerr << "Connection error with player "<< i+1 << std::endl;
@@ -147,7 +142,7 @@ void send_Map(int i)
 
 void get_Action(int i, std::vector<Player*> players, Map *map){
     int rv;
-    int MAXLINE = 40;
+    int MAXLINE = 100;
     char line[MAXLINE];
     char server_msg[MAXLINE];
     //Create a string with P Player.x Player.y
@@ -156,16 +151,12 @@ void get_Action(int i, std::vector<Player*> players, Map *map){
     oss << conn << " " ;
     for ( int j = 0; j < num_SPlayers; j++)
     {
-        oss << " " << players[j]->get_mapX() << " "  << players[j]->get_mapY() << " " << players[j]->get_Range() << " " << players[j]->is_Alive();
+        oss << " " << players[j]->get_mapX() << " "  << players[j]->get_mapY() << " " << players[j]->get_Range() << " " << players[j]->is_Alive() << " " << players[j]->get_Speed();
     }
     oss << std::endl;
     std::string var = oss.str();
     strncpy(server_msg, var.c_str(), sizeof(server_msg));
-    
-    if( keep_log )
-    {
-        log_data << server_msg << "\n";
-    }
+    // std::cout <<server_msg << std::endl;
     if ( write(fdwrite[i][1], server_msg, strlen(server_msg) ) != strlen(server_msg) )
     {
         std::cerr << "WRITE ERROR FROM PIPE WHILE SENDING POSITIONS" << std::endl;
@@ -187,10 +178,6 @@ void get_Action(int i, std::vector<Player*> players, Map *map){
     }while ( rv  == -1 ) ; 
     
     //std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
-    if( keep_log )
-    {
-        log_data << "Player number "<< i+1 <<"  :" << line << "\n";
-    }
     if( strcmp (line, "TIMEOUT") == 0)
     {
         std::cerr << " Player "<< i+1 << " timed out" << std::endl;

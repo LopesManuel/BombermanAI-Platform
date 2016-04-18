@@ -25,10 +25,10 @@ SDL_Surface* gScreenSurface = NULL;
 SDL_Event event;
 
 //Players' holder
-Player* player1 = new Player("Images/player.bmp" , 1, 1);
-Player* player2 = new Player("Images/player2.bmp" , 18, 13);
-Player* player3 = new Player("Images/player.bmp" , 1, 13);
-Player* player4 = new Player("Images/player2.bmp" , 18, 1);
+Player* player1 = new Player("Images/player.bmp" , 1, 1, 1);
+Player* player2 = new Player("Images/player2.bmp" , 18, 13, 2);
+Player* player3 = new Player("Images/player.bmp" , 1, 13, 3);
+Player* player4 = new Player("Images/player2.bmp" , 18, 1, 4);
 std::vector<Player*> all_Players;
 
 //Number of active players
@@ -62,6 +62,7 @@ int  fdwrite[4][2];
 // Log communicatior
 std::ofstream log_data;
 bool keep_log = false;
+int state = 0;
 
 //Parses the comands from shell
 void cmdParse(int argc , char* argv[]);
@@ -69,6 +70,7 @@ void cmdParse(int argc , char* argv[]);
 void init_Players();
 void comm_thread(int i );
 void write_Log();
+void write_state();
 std::string get_date(void);
 
 
@@ -93,7 +95,7 @@ int main ( int argc, char *argv[] )
 	else
 	{			
         map = new Map(world_Map);
-
+        int count = 0;
             
         //Create a thread for each AI agent
         for ( int j = 1; j <= connected; j++)
@@ -106,11 +108,15 @@ int main ( int argc, char *argv[] )
 		/* message pump */
 		while (!gameover  && num_Players > 1 )
 		{
+            count++;
 			/* look for an event */
 			if (SDL_PollEvent(&event) ){
 				handle_Events(event, map, manual_Player);
 			}
-            map->update_Game(all_Players);         
+            /* If map changed write it to the log*/
+            if ( map->update_Game(all_Players) && keep_log ){
+                write_state();
+            }          
             draw_Map(map);
             draw_Player(all_Players);
 			//Update the surface
@@ -234,8 +240,7 @@ void comm_thread(int i )
     while(!gameover  && num_Players > 1)
     {
         send_Map(i);
-        
-         get_Action(i, all_Players, map);
+        get_Action(i, all_Players, map);
     }
 }
 
@@ -259,6 +264,22 @@ void write_Log()
     log_data << "Screen height    :" << SCREEN_HEIGHT <<  " \t  Screen width    :" << SCREEN_WIDTH << "\n";    
     log_data << "Numbr of collumns:" << NUM_COLS       << " \t  Numbr of rows   :" << NUM_ROWS << std::endl;    
     log_data << "Map              :" << level << "\n";    
+    log_data << "-----------------------------------------------------\n";    
+}
+void write_state()
+{
+    state++;
+    log_data << "--------------------- STATE "<< state  <<" ---------------------- \n" ;
+    for(int i = 0; i < NUM_COLS*NUM_ROWS; i++){
+        if ( i % NUM_COLS == 0 )
+             log_data << "\n";
+        log_data << world_Map[i]; 	
+    }
+    log_data << "\n\n";
+    for ( int j = 0; j < num_SPlayers; j++)
+    {
+        log_data << "Player id:"<< j<<" x:" << all_Players[j]->get_mapX() << " y:"  << all_Players[j]->get_mapY() << " range:" << all_Players[j]->get_Range() << " alive:" << all_Players[j]->is_Alive() <<"\n";
+    }
     log_data << "-----------------------------------------------------\n";    
 }
 

@@ -10,6 +10,8 @@ Bomb::Bomb(Player *p)
 	range = p->get_Range();
     life = true;
     explode = false;
+    turns_2explode = turns_2explode/p->get_Speed();
+    player_id = p->get_Id();
 }
 /* TODO:
     - Moving bombs, update shall update its' position 
@@ -45,4 +47,25 @@ const char* Bomb::get_Skin()
     else
         return skin;
     
+}
+
+void Bomb::move(int direction)
+{
+	switch (direction) 
+    {
+		case UP:
+			y -= VELOCITY;
+			break;
+		case DOWN:
+			y += VELOCITY;
+			break;
+		case LEFT:
+			x -= VELOCITY;
+			break;
+		case RIGHT:
+			x += VELOCITY;
+			break;
+	}
+    map_x = x / SPRITE_SIZE;
+    map_y = y / SPRITE_SIZE;
 }

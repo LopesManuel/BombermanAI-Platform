@@ -6,9 +6,10 @@
 class Player
 {
 public:
-	Player(const char* s, int pos_x, int pos_y);
+	Player(const char* s, int pos_x, int pos_y, int i);
 	~Player();
-
+    
+    int get_Id(){return id;};
 	//Returns player position in the world vector
 	int get_mPosition(){ return mIndex(map_x, map_y);};
 	//Returns player's position in screen matrix
@@ -35,6 +36,21 @@ public:
     void bomb_Exploded(){ num_bombs--;};
     void increase_Max_Bombs(){ max_num_boms++;};
     
+    /*            POWER UPS           */
+    //Check if player is a ghost (pp)
+    bool is_ghost(){return ghost;};
+    void ghost_mode(bool t){ghost = t;};
+    //Speed control
+    int get_Speed(){return speed;};
+    void increase_Speed(){speed++;};
+    void decrease_Speed(){speed--;};
+    //Check if player is a detonator (pp)
+    bool has_detonator(){return detonator;};
+    void detonate_mode(bool t){detonator = t;};
+    //Check if player is a slider (pp)
+    bool has_slider(){return slider;};
+    void slider_mode(bool t){slider = t;};
+    
 private:
 	//Player velocity
 	const int VELOCITY = SPRITE_SIZE;	 
@@ -55,6 +71,16 @@ private:
     //Max & current number of bombs at the same time
     int max_num_boms = 1;
     int num_bombs = 0;
+    //Ghost power up
+    bool ghost = false;
+    //ACtions' speed
+    int speed = 5;
+    // Detonate bomb
+    bool detonator = false;
+    //Bomb slider power
+    bool slider = false;
+    // Player's id
+    int id;
 };
 
 #endif

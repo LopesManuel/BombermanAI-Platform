@@ -39,6 +39,12 @@ void handle_Events(SDL_Event event, Map *map, Player *manual_Player)
                         map->add_bomb(temp);
                     }
                     break;
+                case SDLK_RETURN:
+                    if(manual_Player != NULL && manual_Player->has_detonator() && manual_Player->is_Alive()) 
+                    {   // Detonates all is bombs
+                        map->detonate(manual_Player->get_Id());
+                    }
+                    break;
 			}
 			break;
 	}
@@ -111,7 +117,11 @@ void close()
 	SDL_FreeSurface(explosion);	
     SDL_FreeSurface(bomb_pu);	
     SDL_FreeSurface(range_pu);	
-    
+ 	SDL_FreeSurface(ghost_pu);
+	SDL_FreeSurface(speed_pu);	
+    SDL_FreeSurface(switch_pu);	
+    SDL_FreeSurface(slide_pu);
+     
 	//Deallocate surface
 	SDL_FreeSurface( gScreenSurface );
 	gScreenSurface = NULL;
@@ -141,6 +151,10 @@ bool load_Media(char* lvl)
     explosion = bitmap_Loader("Images/explosion.bmp");
     bomb_pu = bitmap_Loader("Images/bomb_powerup.bmp");
     range_pu = bitmap_Loader("Images/range_powerup.bmp");
+    ghost_pu =  bitmap_Loader("Images/ghost_powerup.bmp");
+	speed_pu =  bitmap_Loader("Images/speed_powerup.bmp");	
+    switch_pu =  bitmap_Loader("Images/switch_powerup.bmp");	
+    slide_pu =  bitmap_Loader("Images/slide_powerup.bmp");
     
     return success;
 }
@@ -197,6 +211,22 @@ void draw_Map(Map *map)
 	        else if (ch == RANGE_PUP)
             { 
 			     SDL_BlitSurface(range_pu, NULL, gScreenSurface, &rcPosition);         
+            }
+	        else if (ch == GHOST_PUP)
+            { 
+			     SDL_BlitSurface(ghost_pu, NULL, gScreenSurface, &rcPosition);         
+            }
+	        else if (ch == SPEED_PUP)
+            { 
+			     SDL_BlitSurface(speed_pu, NULL, gScreenSurface, &rcPosition);         
+            }
+	        else if (ch == SWITCH_PUP)
+            { 
+			     SDL_BlitSurface(switch_pu, NULL, gScreenSurface, &rcPosition);         
+            }
+	        else if (ch == SLIDE_PUP)
+            { 
+			     SDL_BlitSurface(slide_pu, NULL, gScreenSurface, &rcPosition);         
             }
 		}
 	}	

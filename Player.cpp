@@ -1,6 +1,6 @@
 #include "Player.h"
 
-Player::Player(const char* s, int pos_x, int pos_y)
+Player::Player(const char* s, int pos_x, int pos_y, int i)
 {
 	skin = s;
 	x = pos_x * SPRITE_SIZE;
@@ -9,6 +9,7 @@ Player::Player(const char* s, int pos_x, int pos_y)
     map_y = pos_y;
 	life = true;
 	connected = false;
+    id = i;
 }
 
 void Player::move( int direction )

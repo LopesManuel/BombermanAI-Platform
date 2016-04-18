@@ -43,5 +43,9 @@ static SDL_Surface* bomb;
 static SDL_Surface* explosion;
 static SDL_Surface* bomb_pu;
 static SDL_Surface* range_pu;
+static SDL_Surface* ghost_pu;
+static SDL_Surface* speed_pu;
+static SDL_Surface* switch_pu;
+static SDL_Surface* slide_pu;
 
 #endif
