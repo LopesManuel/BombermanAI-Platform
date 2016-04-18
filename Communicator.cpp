@@ -55,7 +55,7 @@ void connect_thread(int i )
         //Create a string with CONNECT NUM_COLS NUM_ROWS
         char conn = CONNECT;
         std::ostringstream oss;
-        oss << conn << " " << NUM_COLS << " "  << NUM_ROWS << " "  << num_Players << " " << i<< std::endl;
+        oss << conn << " " << NUM_COLS << " "  << NUM_ROWS << " "  << num_Players << " " << i << std::endl;
         std::string var = oss.str();
         char server_msg[MAXLINE];
         strncpy(server_msg, var.c_str(), sizeof(server_msg));
@@ -151,7 +151,7 @@ void get_Action(int i, std::vector<Player*> players, Map *map){
     oss << conn << " " ;
     for ( int j = 0; j < num_SPlayers; j++)
     {
-        oss << " " << players[j]->get_mapX() << " "  << players[j]->get_mapY() << " " << players[j]->get_Range() << " " << players[j]->is_Alive() << " " << players[j]->get_Speed();
+        oss << " " << players[j]->get_mapX() << " "  << players[j]->get_mapY() << " " << players[j]->get_Range() << " " << players[j]->is_Alive() << " " << players[j]->get_Speed() << " " << players[j]->get_Team_Id();
     }
     oss << std::endl;
     std::string var = oss.str();
@@ -177,7 +177,7 @@ void get_Action(int i, std::vector<Player*> players, Map *map){
             line[rv] = '\0';
     }while ( rv  == -1 ) ; 
     
-    //std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
+    std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
     if( strcmp (line, "TIMEOUT") == 0)
     {
         std::cerr << " Player "<< i+1 << " timed out" << std::endl;

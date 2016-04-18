@@ -6,10 +6,11 @@
 class Player
 {
 public:
-	Player(const char* s, int pos_x, int pos_y, int i);
+	Player(const char* s, int pos_x, int pos_y, int i, int team_id);
 	~Player();
-    
+    //Returns player's ids
     int get_Id(){return id;};
+    int get_Team_Id(){return team_id;};
 	//Returns player position in the world vector
 	int get_mPosition(){ return mIndex(map_x, map_y);};
 	//Returns player's position in screen matrix
@@ -81,6 +82,8 @@ private:
     bool slider = false;
     // Player's id
     int id;
+    // Team id
+    int team_id;
 };
 
 #endif

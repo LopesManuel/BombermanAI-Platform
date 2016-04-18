@@ -44,7 +44,6 @@ int NUM_ROWS; //height
 int NUM_PLAYERS;
 // Id of the current agent
 int PLAYER_ID;
-
 // Players' position
 int *x;
 int *y;
@@ -53,6 +52,7 @@ int *r;
 // Who is alive  1 - alive || 0 - dead
 int *alive;
 int *speed; 
+int *teams;
 
 //Helper functions
 bool connect();
@@ -82,6 +82,7 @@ int main()
         r = (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
         speed = (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
         alive = (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
+        teams =  (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
         //Game loop
         while( !gameover )
         {
@@ -182,7 +183,8 @@ bool update_Positions_And_Ranges()
             iss >> y[i]; // y position
             iss >> r[i]; // ranges
             iss >> alive[i]; // is player i alive?
-            iss >> speed[i]; //player speed
+            iss >> speed[i]; // player speed
+            iss >> teams[i]; // player's team
         }
     }
     else
@@ -209,28 +211,33 @@ double distanceCalculate(int x1, int y1, int x2, int y2)
 /* AI agents next action */
 int  next_action()
 {
-    /* generate random action: */
-    int action;
-    double min_dist = 9999.00;
-    int min_dist_pid = -1;
-    for ( int i = 0; i < NUM_PLAYERS; i++)
-    {
-        if( i != PLAYER_ID && alive[i])
-        {
-            double tmp_dist = distanceCalculate(x[PLAYER_ID], y[PLAYER_ID], x[i], y[i]);
-            if ( tmp_dist < min_dist )
-            {
-                min_dist = tmp_dist;
-                min_dist_pid = i;
-            }
-        }
-    }
+    int range = 2;
 
-    if ( y[min_dist_pid] < y[PLAYER_ID])
-        return UP;
-    else if ( y[min_dist_pid] > y[PLAYER_ID])
-        return DOWN;
-    else if ( x[min_dist_pid] < x[PLAYER_ID])
-        return LEFT;
-    return RIGHT;   
+    /* Flees from bombs */
+    for ( int i = -1; i < range; i++)
+    {
+        for ( int j = -1; j < range; j++)
+        {
+
+            if( world_Map[ (x[PLAYER_ID] )  + i][y[PLAYER_ID] +j] == BOMB)
+            {
+                std::cout << "BOMB"<< i <<"," << j << std::endl;
+                if ( j < 0)
+                    return DOWN;
+                else if ( j >= 0)
+                    return UP;
+                else if (i > 0)
+                {
+                    if ( world_Map[ x[PLAYER_ID] -1 ][y[PLAYER_ID]] == GRASS)
+                        return LEFT;
+                    else if ( world_Map[ x[PLAYER_ID]][y[PLAYER_ID]+1] == GRASS )
+                        return UP;
+                    return DOWN;
+                }
+                return RIGHT;
+            } 
+        }  
+    }
+    /* generate random action: */
+    return 0;
 }

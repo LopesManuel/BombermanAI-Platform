@@ -44,7 +44,6 @@ int NUM_ROWS; //height
 int NUM_PLAYERS;
 // Id of the current agent
 int PLAYER_ID;
-
 // Players' position
 int *x;
 int *y;
@@ -52,6 +51,8 @@ int *y;
 int *r; 
 // Who is alive  1 - alive || 0 - dead
 int *alive;
+int *speed; 
+int *teams;
 
 //Helper functions
 bool connect();
@@ -79,7 +80,9 @@ int main()
         x = (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
         y = (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
         r = (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
+        speed = (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
         alive = (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
+        teams =  (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
         //Game loop
         while( !gameover )
         {
@@ -93,7 +96,7 @@ int main()
             seconds = diff / CLOCKS_PER_SEC;
             if ( seconds <= 1 ){
                 /* 5 plays per second */
-                usleep((CLOCKS_PER_SEC/5)-seconds*(CLOCKS_PER_SEC/5));
+                usleep((CLOCKS_PER_SEC/speed[PLAYER_ID])-seconds*(CLOCKS_PER_SEC/5));
                 /* Print action to send to server */
                 std::cout << action;
             }
@@ -180,6 +183,8 @@ bool update_Positions_And_Ranges()
             iss >> y[i]; // y position
             iss >> r[i]; // ranges
             iss >> alive[i]; // is player i alive?
+            iss >> speed[i]; // player speed
+            iss >> teams[i]; // player's team
         }
     }
     else

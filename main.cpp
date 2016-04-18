@@ -25,10 +25,10 @@ SDL_Surface* gScreenSurface = NULL;
 SDL_Event event;
 
 //Players' holder
-Player* player1 = new Player("Images/player.bmp" , 1, 1, 1);
-Player* player2 = new Player("Images/player2.bmp" , 18, 13, 2);
-Player* player3 = new Player("Images/player.bmp" , 1, 13, 3);
-Player* player4 = new Player("Images/player2.bmp" , 18, 1, 4);
+Player* player1 = new Player("Images/player.bmp" , 1, 1, 1, 1);
+Player* player2 = new Player("Images/player2.bmp" , 18, 13, 2, 2);
+Player* player3 = new Player("Images/player.bmp" , 1, 13, 3, 3);
+Player* player4 = new Player("Images/player2.bmp" , 18, 1, 4, 4);
 std::vector<Player*> all_Players;
 
 //Number of active players
