@@ -37,18 +37,6 @@ extern SDL_Surface* gScreenSurface;
 //Temporary event to hold  poll the event queue to get the most recent event by calling SDL_PollEvent
 extern SDL_Event event;
 
-//Holds world map
-extern char* world_Map;
-
-//Holds path to the lvl map txt
-extern char* level;
-
-//Gets matrix index from vector 
-inline int mIndex( int x, int y)
-{ 
-  return ( y * NUM_COLS) + x;
-}
-
 //Number of players active
 extern int num_Players;
 //Total number of starting players
@@ -63,6 +51,21 @@ enum Actions
   RIGHT,
   FIRE
 };
+/********************** MAP ********************************/
+//Holds world map
+extern char* world_Map;
+
+//Holds path to the lvl map txt
+extern char* level;
+
+//Gets matrix index from vector 
+inline int mIndex( int x, int y)
+{ 
+  return ( y * NUM_COLS) + x;
+}
+
+//Waits for map update before changing it
+extern bool map_updated;
 
 // Game tiles' sprite
 enum Tiles
@@ -110,7 +113,6 @@ enum Protocol
     LIFE      = 'L', // State of the players life
     POSITIONS = 'P', // Every players' positions 
 };
-
 
 
 #endif

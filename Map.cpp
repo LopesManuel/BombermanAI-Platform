@@ -63,6 +63,7 @@ char &Map::operator[](int index)
 bool Map::update_Game(std::vector<Player*> players)
 {    
     bool changed = false;
+    map_updated = false;
 	//Draws all bombs
     for ( Bomb* b : (*bombs))
     {
@@ -140,6 +141,7 @@ bool Map::update_Game(std::vector<Player*> players)
             }
 		}
 	}  
+    map_updated = true;
     return changed;
 }
 

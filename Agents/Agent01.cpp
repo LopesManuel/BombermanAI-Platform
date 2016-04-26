@@ -58,6 +58,8 @@ int NUM_ROWS; //height
 int NUM_PLAYERS;
 // Id of the current agent
 int PLAYER_ID;
+int bomb_range = 4; 
+
 // Players' position
 int *x;
 int *y;
@@ -303,8 +305,34 @@ int flee_bombs(){
                         last_action = STOP;
                         return STOP;
                     }    
+                    std::vector<int*> act_pos =  get_Possible_Positions(x[PLAYER_ID],y[PLAYER_ID] );
+                    /* check if action gets him way from explosion*/
+                    for ( int c = 0; c < act_pos.size() ; c++)
+                    {
+                        if ( act_pos[c][0] > 0 && act_pos[c][1] >0 && act_pos[c][0] < NUM_ROWS && act_pos[c][1] < NUM_COLS){
+                            std::vector<Actions> tmp_pos_actions =  get_Possible_Moves(act_pos[c][0],act_pos[c][1]);
+                            if( tmp_pos_actions.empty() )
+                            {
+                                int l = x[PLAYER_ID] - act_pos[c][0];
+                                int o = y[PLAYER_ID] - act_pos[c][1];
+                                if ( l > 0)
+                                    position = std::find(actions.begin(), actions.end(), UP);
+                                else if ( l < 0)
+                                    position = std::find(actions.begin(), actions.end(), DOWN);
+                                if (position != actions.end() && position != actions.end()) // == myVector.end() means the element was not found
+                                    actions.erase(position);    
+                                    
+                                if (o < 0)
+                                    position = std::find(actions.begin(), actions.end(), RIGHT);
+                                else if (o > 0)
+                                    position = std::find(actions.begin(), actions.end(), LEFT);
+                                    
+                                if (position != actions.end() && position != actions.end()) // == myVector.end() means the element was not found
+                                    actions.erase(position);
+                            }       
+                        }
+                    }
                     int randomIndex = rand() % actions.size(); 
-
                     last_action = actions[randomIndex];                    
 
                     return last_action;
@@ -320,28 +348,28 @@ std::vector<int*> get_Possible_Positions(int x, int y)
 
     std::vector<int*> possible_moves;
     /* Flees from bombs */
-    if( wordl_map[x + 1][y] == GRASS)
+    if( wordl_map[x + 1][y] != STONE &&  wordl_map[x + 1][y] != WALL &&  wordl_map[x + 1][y] != BOMB &&  wordl_map[x + 1][y] != EXPLOSION)
     {   
         int pos [2];
         pos[0] = x+1;
         pos[1] = y;
         possible_moves.push_back(pos); //DOWN
     }
-    if( wordl_map[x - 1][y] == GRASS)
+    if( wordl_map[x - 1][y] != STONE &&  wordl_map[x - 1][y] != WALL &&  wordl_map[x - 1][y] != BOMB &&  wordl_map[x - 1][y] != EXPLOSION)
     {
         int pos [2];
         pos[0] = x-1;
         pos[1] = y;
         possible_moves.push_back(pos); //DOWN
     }
-    if( wordl_map[x][y + 1] == GRASS)
+    if(  wordl_map[x][y +1] != STONE &&  wordl_map[x][y + 1] != WALL &&  wordl_map[x][y + 1] != BOMB &&  wordl_map[x][y + 1] != EXPLOSION)
     {
         int pos [2];
         pos[0] = x;
         pos[1] = y+1;
         possible_moves.push_back(pos); //DOWN
     }
-    if( wordl_map[x][y -1] == GRASS)
+    if( wordl_map[x][y -1] != STONE &&  wordl_map[x][y - 1] != WALL &&  wordl_map[x][y - 1] != BOMB &&  wordl_map[x][y - 1] != EXPLOSION)
     {
         int pos [2];
         pos[0] = x;
@@ -368,11 +396,42 @@ int  next_action()
         {
             action = FIRE;
         }
-        else 
+        else /*Gets closest enemy and moves towards him*/
         {
             std::vector<Actions> actions =  get_Possible_Moves(x[PLAYER_ID],y[PLAYER_ID] );
-            int randomIndex = rand() % actions.size(); 
-            action = actions[randomIndex];  
+            double min_dist = 9999.00;
+            int min_dist_pid = -1;
+            for ( int i = 0; i < NUM_PLAYERS; i++)
+            {
+                if( i != PLAYER_ID && alive[i])
+                {
+                    double tmp_dist = distance_Calculate(x[PLAYER_ID], y[PLAYER_ID], x[i], y[i]);
+                    if ( tmp_dist < min_dist )
+                    {
+                        min_dist = tmp_dist;
+                        min_dist_pid = i;
+                    }
+                }
+            }
+            
+            if ( min_dist < bomb_range )
+            {
+                 action = FIRE;
+            }
+            else
+            {
+                if ( y[min_dist_pid] < y[PLAYER_ID])
+                    actions.push_back(UP);
+                else if ( y[min_dist_pid] > y[PLAYER_ID])
+                    actions.push_back(DOWN);
+                if ( x[min_dist_pid] < x[PLAYER_ID])
+                    actions.push_back(LEFT);
+                else if ( x[min_dist_pid] > x[PLAYER_ID])
+                    actions.push_back(RIGHT);  
+                     
+                int randomIndex = rand() % actions.size(); 
+                action = actions[randomIndex];  
+            }
         }
     }
     return action;

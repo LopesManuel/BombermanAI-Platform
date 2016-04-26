@@ -58,6 +58,8 @@ int NUM_ROWS; //height
 int NUM_PLAYERS;
 // Id of the current agent
 int PLAYER_ID;
+int bomb_range = 4; 
+
 // Players' position
 int *x;
 int *y;
@@ -368,11 +370,42 @@ int  next_action()
         {
             action = FIRE;
         }
-        else 
+        else /*Gets closest enemy and moves towards him*/
         {
             std::vector<Actions> actions =  get_Possible_Moves(x[PLAYER_ID],y[PLAYER_ID] );
-            int randomIndex = rand() % actions.size(); 
-            action = actions[randomIndex];  
+            double min_dist = 9999.00;
+            int min_dist_pid = -1;
+            for ( int i = 0; i < NUM_PLAYERS; i++)
+            {
+                if( i != PLAYER_ID && alive[i])
+                {
+                    double tmp_dist = distance_Calculate(x[PLAYER_ID], y[PLAYER_ID], x[i], y[i]);
+                    if ( tmp_dist < min_dist )
+                    {
+                        min_dist = tmp_dist;
+                        min_dist_pid = i;
+                    }
+                }
+            }
+            
+            if ( min_dist < bomb_range )
+            {
+                 action = FIRE;
+            }
+            else
+            {
+                if ( y[min_dist_pid] < y[PLAYER_ID])
+                    actions.push_back(UP);
+                else if ( y[min_dist_pid] > y[PLAYER_ID])
+                    actions.push_back(DOWN);
+                if ( x[min_dist_pid] < x[PLAYER_ID])
+                    actions.push_back(LEFT);
+                else if ( x[min_dist_pid] > x[PLAYER_ID])
+                    actions.push_back(RIGHT);  
+                     
+                int randomIndex = rand() % actions.size(); 
+                action = actions[randomIndex];  
+            }
         }
     }
     return action;

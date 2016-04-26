@@ -189,30 +189,37 @@ void get_Action(int i, std::vector<Player*> players, Map *map){
         std::cerr << " Player "<< i+1 << " timed out" << std::endl;
         players[i]->die();
     }
-    switch (atoi(line)) 
-    {
-            case LEFT:
-                if(players[i] != NULL && map->can_Move(players[i], -1) && players[i]->is_Alive())
-                    players[i]->move(LEFT);
-                break;
-            case RIGHT:
-                if(players[i] != NULL && map->can_Move(players[i], 1) && players[i]->is_Alive())
-                    players[i]->move(RIGHT);
-                break;
-            case UP:
-                if(players[i] != NULL && map->can_Move(players[i], -NUM_COLS) && players[i]->is_Alive())
-                    players[i]->move(UP);
-                break;
-            case DOWN:
-                if(players[i] != NULL && map->can_Move(players[i], NUM_COLS) && players[i]->is_Alive())
-                    players[i]->move(DOWN);
-                break;
-            case FIRE:
-                if(players[i] != NULL && map->can_Move(players[i], 0) && players[i]->is_Alive() && players[i]->can_Place()) 
-                {   // Can only plant 1 bomb per location 
-                    Bomb* temp = new Bomb(players[i]);
-                    map->add_bomb(temp);
-                }
-                break;
+    bool updated = false;
+    while ( !updated ){
+        if ( map_updated )
+        {
+            switch (atoi(line)) 
+            {
+                    case LEFT:
+                        if(players[i] != NULL && map->can_Move(players[i], -1) && players[i]->is_Alive())
+                            players[i]->move(LEFT);
+                        break;
+                    case RIGHT:
+                        if(players[i] != NULL && map->can_Move(players[i], 1) && players[i]->is_Alive())
+                            players[i]->move(RIGHT);
+                        break;
+                    case UP:
+                        if(players[i] != NULL && map->can_Move(players[i], -NUM_COLS) && players[i]->is_Alive())
+                            players[i]->move(UP);
+                        break;
+                    case DOWN:
+                        if(players[i] != NULL && map->can_Move(players[i], NUM_COLS) && players[i]->is_Alive())
+                            players[i]->move(DOWN);
+                        break;
+                    case FIRE:
+                        if(players[i] != NULL && map->can_Move(players[i], 0) && players[i]->is_Alive() && players[i]->can_Place()) 
+                        {   // Can only plant 1 bomb per location 
+                            Bomb* temp = new Bomb(players[i]);
+                            map->add_bomb(temp);
+                        }
+                        break;
+            }
+            updated = true;
+        }
     }
 }

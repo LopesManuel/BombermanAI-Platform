@@ -48,6 +48,9 @@ char* world_Map = (char*) malloc(sizeof(char) * ((NUM_COLS) * (NUM_ROWS) ));
 //Holds world map vector
 char* level;
 
+//Waits for map update before changing it
+bool map_updated = true;
+
 //Map object to control all events
 Map* map;
 
