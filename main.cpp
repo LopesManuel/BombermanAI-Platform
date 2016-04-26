@@ -276,10 +276,12 @@ void write_state()
         log_data << world_Map[i]; 	
     }
     log_data << "\n\n";
+    log_data << "P ";
     for ( int j = 0; j < num_SPlayers; j++)
     {
-        log_data << "Player id:"<< j<<" x:" << all_Players[j]->get_mapX() << " y:"  << all_Players[j]->get_mapY() << " range:" << all_Players[j]->get_Range() << " alive:" << all_Players[j]->is_Alive() <<"\n";
+       log_data << all_Players[j]->get_mapX() << " "<< all_Players[j]->get_mapY() << " " << all_Players[j]->get_Range() << " " << all_Players[j]->is_Alive()<< " " << all_Players[j]->get_Speed() << " " << all_Players[j]->get_Team_Id() <<" ";
     }
+    log_data <<"\n";
     log_data << "-----------------------------------------------------\n";    
 }
 

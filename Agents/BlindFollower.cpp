@@ -54,6 +54,11 @@ int *alive;
 int *speed; 
 int *teams;
 
+//Gets matrix index from vector 
+inline int mIndex( int x, int y)
+{ 
+  return ( y * NUM_COLS) + x;
+}
 //Helper functions
 bool connect();
 bool update_Map();
@@ -148,12 +153,13 @@ bool update_Map()
     iss >> pmesg;
     iss >> world;
 
-    if (pmesg == MAP){
+    if (pmesg == MAP)
+    {
         for(int i = 0; i < NUM_ROWS; i++)
         {
             for(int j = 0; j < NUM_COLS; j++)
             { 
-                world_Map[i][j] = world[i+j];
+                world_Map[i][j] = world[mIndex(j,i)];
             }
         } 
     }

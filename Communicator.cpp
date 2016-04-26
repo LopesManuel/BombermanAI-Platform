@@ -59,6 +59,7 @@ void connect_thread(int i )
         std::string var = oss.str();
         char server_msg[MAXLINE];
         strncpy(server_msg, var.c_str(), sizeof(server_msg));
+      //  std::cout <<server_msg << std::endl;
         
         // Write to pipe
         if ( write(fdwrite[i][1], server_msg, strlen(server_msg) ) != strlen(server_msg) )
@@ -105,33 +106,36 @@ void send_Map(int i)
     var += " ";
     
     for(int i = 0; i < NUM_COLS*NUM_ROWS; i++){
-        var += world_Map[i]; 	
+        if ( world_Map[i] == STONE_PUP)
+            var += STONE;
+        else
+            var += world_Map[i]; 	
     }
     char server_msg[NUM_COLS*NUM_ROWS +3];
     strncpy(server_msg, var.c_str(), sizeof(server_msg));
     server_msg[sizeof(server_msg)-1] = '\n';
-    // std::cout <<server_msg << std::endl;
+   //  std::cout <<server_msg << std::endl;
     if ( write(fdwrite[i][1], server_msg, strlen(server_msg) ) != strlen(server_msg) )
     {
         std::cerr << "WRITE ERROR FROM PIPE WHILE SENDING MAP" << std::endl;
     }
     do  //WAITS FOR COMMUNICATION -- EWOULDBLOCK
     {
-        rv = read(fdread[i][0], line, MAXLINE);
+        rv = read(fdread[i][0], line, 15);
         if ( rv < 0 )
         {
             std::cerr << "READ ERROR FROM PIPE WHILE SENDING MAP" << std::endl;
         }
         else if (rv == 0)
         {
-            std::cerr << "Child Closed Pipe WHILE SENDING MAP" << std::endl;
+            std::cerr << "Child "<< i+1<<" Closed Pipe WHILE SENDING MAP" << std::endl;
             return;
         }
         else
             line[rv] = '\0';
     }while ( rv  == -1 ) ; 
     
-    //std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
+   // std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
     if( strcmp (line, "RECEIVED") != 0)
     {
         std::cerr << "Connection error with player "<< i+1 << std::endl;
@@ -142,7 +146,7 @@ void send_Map(int i)
 
 void get_Action(int i, std::vector<Player*> players, Map *map){
     int rv;
-    int MAXLINE = 100;
+    int MAXLINE = 80;
     char line[MAXLINE];
     char server_msg[MAXLINE];
     //Create a string with P Player.x Player.y
@@ -156,28 +160,30 @@ void get_Action(int i, std::vector<Player*> players, Map *map){
     oss << std::endl;
     std::string var = oss.str();
     strncpy(server_msg, var.c_str(), sizeof(server_msg));
-    // std::cout <<server_msg << std::endl;
+    //std::cout <<server_msg << std::endl;
     if ( write(fdwrite[i][1], server_msg, strlen(server_msg) ) != strlen(server_msg) )
     {
         std::cerr << "WRITE ERROR FROM PIPE WHILE SENDING POSITIONS" << std::endl;
     }
     do  //WAITS FOR COMMUNICATION -- EWOULDBLOCK
     {
-        rv = read(fdread[i][0], line, MAXLINE);
+        rv = read(fdread[i][0], line, 2);
         if ( rv < 0 )
         {
             std::cerr << "READ ERROR FROM PIPE WHILE READING ACTION" << std::endl;
         }
         else if (rv == 0)
         {
-            std::cerr << "Child Closed Pipe -function: get_Action()" << std::endl;
+            std::cerr << "Child " << i+1<<" Closed Pipe -function: get_Action()" << std::endl;
             exit(-1);
         }
         else
             line[rv] = '\0';
     }while ( rv  == -1 ) ; 
-    
-    std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
+/*    if ( i == 0){
+        std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
+        std::cout << " " << players[i]->get_mapX() << " "  << players[i]->get_mapY() << " " << players[i]->get_Range() << " " << players[i]->is_Alive() << " " << players[i]->get_Speed() << " " << players[i]->get_Team_Id();
+    }*/
     if( strcmp (line, "TIMEOUT") == 0)
     {
         std::cerr << " Player "<< i+1 << " timed out" << std::endl;
