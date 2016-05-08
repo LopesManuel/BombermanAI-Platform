@@ -184,6 +184,7 @@ void get_Action(int i, std::vector<Player*> players, Map *map){
         std::cout << "Player number "<< i+1 <<" is:" << line << std::endl;
         std::cout << " " << players[i]->get_mapX() << " "  << players[i]->get_mapY() << " " << players[i]->get_Range() << " " << players[i]->is_Alive() << " " << players[i]->get_Speed() << " " << players[i]->get_Team_Id();
     }*/
+
     if( strcmp (line, "TIMEOUT") == 0)
     {
         std::cerr << " Player "<< i+1 << " timed out" << std::endl;
