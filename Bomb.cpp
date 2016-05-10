@@ -33,7 +33,6 @@ bool Bomb::update()
         turns_2disapear--;
         if ( turns_2disapear <= 0 )
         {
-            life = false;
             return false;
         }
     }

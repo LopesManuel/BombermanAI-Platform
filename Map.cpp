@@ -64,9 +64,11 @@ bool Map::update_Game(std::vector<Player*> players)
 {    
     bool changed = false;
     map_updated = false;
+    std::cout << "B" << std::endl;
 	//Draws all bombs
-    for ( Bomb* b : (*bombs))
+    for ( int i = 0; i < (*bombs).size(); i++)
     {
+        Bomb* b = (*bombs)[i];
 		if( b != NULL && b->is_Alive())
 		{   //Check if it exploded
             if(b->update()){               
@@ -89,16 +91,20 @@ bool Map::update_Game(std::vector<Player*> players)
             else
             {
                 clear_explosion(b->get_mPosition(), b->get_range());
-                bombs->pop_front();
+                b->die();
             }
             changed = true;
             //Check if it is sliding
-            if ( b->is_Sliding() != -1 &&  can_Slide(b, b->is_Sliding()) )
+            if ( b->is_Sliding() != -1 &&  can_Slide(b, b->is_Sliding()))
             {
                 b->move(b->is_Sliding());
             }
    		}
+        else{
+            bombs->erase(bombs->begin()+i);
+        }
 	}
+    std::cout << "P" << std::endl;
     /*Checks if any player died this turn  */
     for ( Player* p : players)
     {
@@ -141,6 +147,7 @@ bool Map::update_Game(std::vector<Player*> players)
             }
 		}
 	}  
+    std::cout << "U" << std::endl;
     map_updated = true;
     return changed;
 }

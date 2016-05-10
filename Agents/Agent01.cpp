@@ -233,7 +233,7 @@ void search_for_players()
             {
                 if ( (explore[i].x == x[p] &&  explore[i].y == y[p]))
                 {
-                    if ( distance_Calculate(explore[i].x, explore[i].y, x[PLAYER_ID], y[PLAYER_ID]) <= r[PLAYER_ID]  )
+                    if ( distance_Calculate(explore[i].x, explore[i].y, x[PLAYER_ID], y[PLAYER_ID]) < r[PLAYER_ID]  )
                     {
                         plan->push_front(FIRE);
                         stop_exploration = true;
@@ -292,7 +292,7 @@ void search_for_players()
                     {
                         if ( (tmp[i].x == x[p] &&  tmp[i].y == y[p]))
                         {
-                            if ( distance_Calculate(tmp[i].x, tmp[i].y, x[PLAYER_ID], y[PLAYER_ID]) <= r[PLAYER_ID]  )
+                            if ( distance_Calculate(tmp[i].x, tmp[i].y, x[PLAYER_ID], y[PLAYER_ID]) < r[PLAYER_ID]  )
                             {
                                 plan->push_front(FIRE);
                                 stop_exploration = true;
@@ -442,10 +442,8 @@ void search_for_walls(){
         std::deque<node> explore = get_Possible_Positions(&root);
         for( int i = 0; i < explore.size(); i++)
         {
-            std::size_t found = pUps.find(wordl_map[explore[i].x][explore[i].y]);
             if ( wordl_map[explore[i].x+1][explore[i].y] == STONE || wordl_map[explore[i].x-1][explore[i].y] == STONE ||
-                wordl_map[explore[i].x][explore[i].y -1] == STONE || wordl_map[explore[i].x][explore[i].y +1] == STONE ||
-                found!=std::string::npos)
+                wordl_map[explore[i].x][explore[i].y -1] == STONE || wordl_map[explore[i].x][explore[i].y +1] == STONE)
             {
                 node* fat = explore[i].father;
                 plan->push_front(get_What_Move_To_Make(fat->x, fat->y, explore[i].x, explore[i].y));

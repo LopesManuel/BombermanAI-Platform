@@ -175,7 +175,7 @@ void draw_Map(Map *map)
 	SDL_Rect rcPosition;
 		/* Textures */	
     char ch;
-	
+    std::cout << "d1" << std::endl;
 	for (int y = 0; y < NUM_ROWS; y++) 
 	{
 		for (int x = 0; x < NUM_COLS; x++) 
@@ -230,6 +230,7 @@ void draw_Map(Map *map)
             }
 		}
 	}	
+    std::cout << "d2" << std::endl;
 }
 
 bool load_Map(const char* path)

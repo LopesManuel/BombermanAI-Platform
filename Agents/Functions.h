@@ -51,7 +51,7 @@ enum PowerUps
     SWITCH_PUP= 't',
     SLIDE_PUP = 'l'
 };
-std::string pUps = "b r g s t l";
+char pUps[] = "brgstl";
 
 //Holds world map matrix
 char **wordl_map;
