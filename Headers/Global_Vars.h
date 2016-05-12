@@ -42,6 +42,9 @@ extern int num_Players;
 //Total number of starting players
 extern int num_SPlayers;
 
+//Manual player's id, if it exists
+extern int manual_Player_id;
+
 // Player's possible actions
 enum Actions
 {

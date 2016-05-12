@@ -50,7 +50,7 @@ void handle_Events(SDL_Event event, Map *map, Player *manual_Player)
 	}
 }
 
-void handle_Replay_Controls( SDL_Event event , int &state, std::function<void(int)> read_state)
+void handle_Replay_Controls( SDL_Event event , int &state,Logger *lg, std::vector<Player*> &all_Players)
 {
 	switch (event.type) {
 		/* close button clicked */
@@ -73,7 +73,7 @@ void handle_Replay_Controls( SDL_Event event , int &state, std::function<void(in
                     state++;
 					break;
             }
-            read_state(state); 
+            lg->read_state(state, all_Players); 
     }
 }
 

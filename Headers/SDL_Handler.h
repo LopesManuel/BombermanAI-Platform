@@ -5,11 +5,12 @@
 #include "Global_Vars.h"
 #include "Player.h"
 #include "Map.h"
+#include "Logger.h"
 
 /* Handles all in game input events*/
 void handle_Events(SDL_Event event, Map* map, Player* mp);
 /* Handles all in replay input events*/
-void handle_Replay_Controls( SDL_Event event , int &state, std::function<void(int)> read_state);
+void handle_Replay_Controls( SDL_Event event , int &state, Logger *lg, std::vector<Player*> &ap);
 
 /* Initializes SDL windows surface*/
 bool init();
