@@ -6,8 +6,10 @@
 #include "Player.h"
 #include "Map.h"
 
-/* Handles all input events*/
+/* Handles all in game input events*/
 void handle_Events(SDL_Event event, Map* map, Player* mp);
+/* Handles all in replay input events*/
+void handle_Replay_Controls( SDL_Event event , int &state, std::function<void(int)> read_state);
 
 /* Initializes SDL windows surface*/
 bool init();

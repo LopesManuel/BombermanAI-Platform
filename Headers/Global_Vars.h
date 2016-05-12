@@ -88,7 +88,7 @@ enum PowerUps
     SLIDE_PUP = 'l'
 };
 /************************ LOG ****************************/
-extern std::ofstream log_data;
+extern std::fstream log_data;
 
 extern bool keep_log;
 

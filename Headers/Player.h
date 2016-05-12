@@ -23,6 +23,7 @@ public:
 	bool is_Alive(){ return life;};
     //Set life to false
     void die(){ life = false;};
+    void resurect(){ life = true;};
 	//Checks if it is connected
 	bool is_Connected(){ return connected;};
     //Returns player's range
@@ -51,7 +52,8 @@ public:
     //Check if player is a slider (pp)
     bool has_slider(){return slider;};
     void slider_mode(bool t){slider = t;};
-    
+    //Set positions for replay 
+    void set_position(int xx, int yy);
 private:
 	//Player velocity
 	const int VELOCITY = SPRITE_SIZE;	 

@@ -12,7 +12,13 @@ Player::Player(const char* s, int pos_x, int pos_y, int i, int ti)
     id = i;
     team_id = ti;
 }
-
+void Player::set_position(int xx, int yy)
+{
+    map_x = xx; 
+    map_y = yy; 
+    x = xx * SPRITE_SIZE; 
+	y = yy * SPRITE_SIZE;
+};
 void Player::move( int direction )
 {
 	switch (direction) 

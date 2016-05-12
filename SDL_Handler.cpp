@@ -50,6 +50,33 @@ void handle_Events(SDL_Event event, Map *map, Player *manual_Player)
 	}
 }
 
+void handle_Replay_Controls( SDL_Event event , int &state, std::function<void(int)> read_state)
+{
+	switch (event.type) {
+		/* close button clicked */
+		case SDL_QUIT:
+			gameover = 1;
+			break;
+			
+		/* handle the keyboard */
+		case SDL_KEYDOWN:
+			switch (event.key.keysym.sym) {
+				case SDLK_ESCAPE:
+				case SDLK_q:
+					gameover = 1;
+					break;
+				case SDLK_LEFT:
+                    if ( state > 0)
+                        state--;
+					break;
+				case SDLK_RIGHT:
+                    state++;
+					break;
+            }
+            read_state(state); 
+    }
+}
+
 /* Initializes SDL windows surface*/
 bool init()
 {
@@ -175,7 +202,7 @@ void draw_Map(Map *map)
 	SDL_Rect rcPosition;
 		/* Textures */	
     char ch;
-    std::cout << "d1" << std::endl;
+   // std::cout << "d1" << std::endl;
 	for (int y = 0; y < NUM_ROWS; y++) 
 	{
 		for (int x = 0; x < NUM_COLS; x++) 
@@ -230,7 +257,7 @@ void draw_Map(Map *map)
             }
 		}
 	}	
-    std::cout << "d2" << std::endl;
+   // std::cout << "d2" << std::endl;
 }
 
 bool load_Map(const char* path)

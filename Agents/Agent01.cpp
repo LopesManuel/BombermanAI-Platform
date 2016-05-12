@@ -182,7 +182,7 @@ bool check_for_players(){
     int lr_id = -1;
     for ( int i = 0; i < NUM_PLAYERS; i++)
     {
-        if( i != PLAYER_ID && alive[i])
+        if( alive[i])
         {
             if ( r[i] > lr )
             {

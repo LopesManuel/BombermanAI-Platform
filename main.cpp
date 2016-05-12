@@ -45,8 +45,11 @@ int connected = 0;
 //Holds world map vector
 char* world_Map = (char*) malloc(sizeof(char) * ((NUM_COLS) * (NUM_ROWS) ));
 
-//Holds world map vector
+//Holds initial level preset
 char* level;
+
+std::vector<std::string> lvls;
+std::vector<std::string> positions;
 
 //Waits for map update before changing it
 bool map_updated = true;
@@ -62,10 +65,12 @@ char executes[4][15];
 int  fdread[4][2];
 int  fdwrite[4][2];
 
-// Log communicatior
-std::ofstream log_data;
+// Log communicator
+std::fstream log_data;
+std::string last_log = "";
 bool keep_log = false;
 int state = 0;
+bool replaying = false;
 
 //Parses the comands from shell
 void cmdParse(int argc , char* argv[]);
@@ -74,8 +79,9 @@ void init_Players();
 void comm_thread(int i );
 void write_Log();
 void write_state();
+void read_state(int state);
 std::string get_date(void);
-
+void read_log_header();
 
 int main ( int argc, char *argv[] )
 {
@@ -92,6 +98,7 @@ int main ( int argc, char *argv[] )
     //Load lvl and all images 
 	if(!load_Media(level))
 	{
+        std::cout << "error : " << level << std::endl;
 		printf( "Failed to load textures!\n" );
 		exit(-1);
 	}
@@ -109,7 +116,7 @@ int main ( int argc, char *argv[] )
         if ( keep_log )
             write_Log();
 		/* message pump */
-		while (!gameover  && num_Players > 1 )
+		while (!replaying && !gameover  && num_Players > 1 )
 		{
             count++;
 			/* look for an event */
@@ -117,7 +124,8 @@ int main ( int argc, char *argv[] )
 				handle_Events(event, map, manual_Player);
 			}
             /* If map changed write it to the log*/
-            if ( map->update_Game(all_Players) && keep_log ){
+             map->update_Game(all_Players);
+            if (keep_log ){
                 write_state();
             }          
             draw_Map(map);
@@ -125,6 +133,23 @@ int main ( int argc, char *argv[] )
 			//Update the surface
 			SDL_UpdateWindowSurface( gWindow );
 		}
+        write_state();
+        /* Replays game from log file*/
+        if( replaying ){
+            int state = 1;
+            while (!gameover)
+		    {
+                /* look for an event */
+                if (SDL_PollEvent(&event) ){
+                    handle_Replay_Controls(event, state, read_state);
+                }
+               map->update_Game(all_Players);
+               draw_Map(map);
+               draw_Player(all_Players);
+               //Update the surface
+			   SDL_UpdateWindowSurface( gWindow );
+            }
+        }
         int winner =  map->who_Won(all_Players);
         if ( winner == NULL)
             std::cout << "Draw!!" << std::endl;
@@ -143,7 +168,30 @@ void cmdParse(int argc , char* argv[])
 {
     for(int i = 0; i < argc; i++)
     {
-        if( strcmp(argv[i], "-n") == 0 )
+        if( strcmp(argv[i], "-replay") == 0 )
+        {
+            if(argv[i+1] == NULL)
+            {
+                printf( "Missing log file!\n" );
+                exit(-1);   
+            }
+            else{
+                log_data.open(argv[i+1],std::fstream::in );
+                if (log_data.is_open())
+                {
+                    replaying = true;
+                    read_log_header();
+                    std::cout << "Operation successfully performed\n";
+                    break;
+                }
+                else
+                {
+                    std::cout << "Error opening file";
+                    exit(-1);
+                }
+            }
+        }       
+        else if( strcmp(argv[i], "-n") == 0 )
         {
             int np = atoi(argv[i+1]);
             if( np > 4 || np <= 0)
@@ -259,33 +307,45 @@ void write_Log()
     path += "_";
     path += get_date();
     std::cout << path << std::endl;
-    log_data.open(path);
+    log_data.open(path,std::fstream::out );
     log_data << "--------------------- LOG "<<  serial_number <<" ---------------------- \n" ;
-    log_data << "Number of players:" << num_Players << "\n";    
-    log_data << "Number of agents :" << connected << "\n";  
-    log_data << "Manual player id :" << manual_Player_id << "\n";  
-    log_data << "Screen height    :" << SCREEN_HEIGHT <<  " \t  Screen width    :" << SCREEN_WIDTH << "\n";    
-    log_data << "Numbr of collumns:" << NUM_COLS       << " \t  Numbr of rows   :" << NUM_ROWS << std::endl;    
-    log_data << "Map              :" << level << "\n";    
+    log_data << "Number of players : " << num_Players << "\n";    
+    log_data << "Number of agents  : " << connected << "\n";  
+    log_data << "Manual player id  : " << manual_Player_id << "\n";  
+    log_data << "Screen height     : " << SCREEN_HEIGHT <<  " \t  Screen width    : " << SCREEN_WIDTH << "\n";    
+    log_data << "Numbr of collumns : " << NUM_COLS       << " \t  Numbr of rows   : " << NUM_ROWS << std::endl;    
+    log_data << "Map               : " << level << "\n";    
     log_data << "-----------------------------------------------------\n";    
 }
 void write_state()
 {
     state++;
-    log_data << "--------------------- STATE "<< state  <<" ---------------------- \n" ;
+    std::string current_log = "";
     for(int i = 0; i < NUM_COLS*NUM_ROWS; i++){
-        if ( i % NUM_COLS == 0 )
-             log_data << "\n";
-        log_data << world_Map[i]; 	
+        current_log += world_Map[i]; 	
     }
-    log_data << "\n\n";
-    log_data << "P ";
+    current_log += "\n";
+    current_log += "P ";
     for ( int j = 0; j < num_SPlayers; j++)
     {
-       log_data << all_Players[j]->get_mapX() << " "<< all_Players[j]->get_mapY() << " " << all_Players[j]->get_Range() << " " << all_Players[j]->is_Alive()<< " " << all_Players[j]->get_Speed() << " " << all_Players[j]->get_Team_Id() <<" ";
+       current_log += std::to_string(all_Players[j]->get_mapX()); 
+       current_log += " ";
+       current_log += std::to_string(all_Players[j]->get_mapY());
+       current_log += " ";
+       current_log += std::to_string(all_Players[j]->get_Range());
+       current_log += " ";
+       current_log += std::to_string(all_Players[j]->is_Alive());
+       current_log += " ";
+       current_log += std::to_string(all_Players[j]->get_Speed());
+       current_log += " ";
+       current_log += std::to_string(all_Players[j]->get_Team_Id());
+       current_log += " ";
     }
-    log_data <<"\n";
-    log_data << "-----------------------------------------------------\n";    
+    current_log += "\n";
+    if ( current_log.compare(last_log) ){
+        last_log = current_log;
+        log_data << last_log;
+    }
 }
 
 std::string get_date(void)
@@ -303,4 +363,77 @@ std::string get_date(void)
    }
 
    return std::string(the_date);
+}
+
+
+void read_state( int state)
+{
+    if ( state < lvls.size() ){
+        int count = 0; 
+        for (int y = 0; y < NUM_ROWS; y++) 
+        {
+            for (int x = 0; x < NUM_COLS; x++) 
+            {                  
+                world_Map[ mIndex(x,y)] = lvls[state][count];
+                count++;
+            }
+        }
+        std::istringstream iss(positions[state]);
+        std::string ignore, px, py, r, al, sp, te;
+        iss >> ignore;
+        for (int i = 0; i < num_Players; i++) 
+        {
+            iss >> px; // x position 
+            iss >> py; // y position
+            iss >> r; // ranges
+            iss >> al; // is player i alive?
+            iss >> sp; // player speed
+            iss >> te; // player's team
+            all_Players[i]->set_position(atoi(px.c_str()), atoi(py.c_str()));
+            if ( al.compare("0") == 0 )
+                all_Players[i]->die();
+            else if (  !all_Players[i]->is_Alive() )
+                all_Players[i]->resurect();
+        }
+    }
+    else{
+        state = lvls.size()-1;
+    }
+}
+void read_log_header( )
+{
+    std::string output;
+    for (int i = 0; i < 8 ; i++){
+        std::getline(log_data,output);
+        std::cout << output << std::endl;
+        std::istringstream iss(output);
+
+        if ( i == 1){
+            std::string word;
+            while(iss >> word) {
+                if ( word.compare(":") == 0 ){
+                    iss >> word;
+                    num_Players = atoi(word.c_str());
+                }
+            }            
+        }
+        else if ( i == 6){
+            std::string word;
+            while(iss >> word) {
+                if ( word.compare(":") == 0 ){
+                    iss >> word;
+                    level = (char*) malloc(sizeof(char) * word.length());
+                    sprintf(level, "%s", word.c_str());
+                }
+            }  
+        }
+    }
+    while(std::getline(log_data,output)) // To get you all the lines.
+    {
+        /*     MAP     */
+        lvls.push_back(output);
+        /*     PLAYERS     */
+        std::getline(log_data,output);
+        positions.push_back(output);
+    }
 }
