@@ -157,15 +157,14 @@ bool Map::update_Game(std::vector<Player*> players)
 
 int Map::who_Won(std::vector<Player*> players)
 {
-    for (int i; i < players.size(); i++) 
+    for (int i=0; i < players.size(); i++) 
     {
-        Player* p = players[i];
-		if( p != NULL && p->is_Alive())
+		if( players[i]->is_Alive() )
 		{
             return  i;
 		}
 	}  
-    return NULL;
+    return -1;
 }
 
 

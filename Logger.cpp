@@ -51,7 +51,14 @@ void Logger::write_state(std::vector<Player*> &all_Players)
         log_data << last_log;
     }
 }
-
+void Logger::write_winner(int winner)
+{
+    log_data << "-----------------------------------------------------\n";    
+    if ( winner != -1)
+        log_data << " Player : " << winner+1 << " won!!";
+    else
+        log_data << " Draw !!";
+}
 std::string Logger::get_date(void)
 {
    time_t now;
@@ -104,6 +111,7 @@ void Logger::read_state( int state , std::vector<Player*> &all_Players)
         state = lvls.size()-1;
     }
 }
+
 void Logger::read_log_header()
 {
     std::string output;
@@ -134,10 +142,28 @@ void Logger::read_log_header()
     }
     while(std::getline(log_data,output)) // To get you all the lines.
     {
-        /*     MAP     */
-        lvls.push_back(output);
-        /*     PLAYERS     */
-        std::getline(log_data,output);
-        positions.push_back(output);
+        if (  output.compare("-----------------------------------------------------") == 0 )
+        {
+            std::getline(log_data,output);
+            std::istringstream iss(output);
+            std::string word;
+            while(iss >> word) {
+                if ( word.compare(":") == 0 ){
+                    iss >> word;
+                    std::cout << "Player " << atoi(word.c_str()) << " won!" << std::endl;
+                }
+                else if ( word.compare("Draw") == 0 ){
+                    std::cout << "Draw!"<< std::endl;
+                }
+            }            
+        }
+        else
+        {
+            /*     MAP     */
+            lvls.push_back(output);
+            /*     PLAYERS     */
+            std::getline(log_data,output);
+            positions.push_back(output);
+        }
     }
 }

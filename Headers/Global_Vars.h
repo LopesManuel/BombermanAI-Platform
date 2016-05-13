@@ -27,7 +27,7 @@ extern const int NUM_ROWS;
 
 // Global logic 
 extern int gameover;
-
+extern int seed;
 //The window we'll be rendering to
 extern SDL_Window* gWindow;
 	

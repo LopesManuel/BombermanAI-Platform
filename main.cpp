@@ -12,7 +12,7 @@ const int NUM_COLS = SCREEN_WIDTH / SPRITE_SIZE;
 const int NUM_ROWS = SCREEN_HEIGHT / SPRITE_SIZE;
 
 int speed;
-
+int seed; 
 // Global logic 
 int gameover = 0;
 
@@ -144,12 +144,16 @@ int main ( int argc, char *argv[] )
 			   SDL_UpdateWindowSurface( gWindow );
             }
         }
-        int winner =  map->who_Won(all_Players);
-        if ( winner == NULL)
-            std::cout << "Draw!!" << std::endl;
-        else
-            std::cout << "Player " << winner+1 << " won!! Congratulations!" << std::endl;
-	}
+        else 
+        {
+            int winner =  map->who_Won(all_Players);
+            if ( winner == -1)
+                std::cout << "Draw!!" << std::endl;
+            else
+                std::cout << "Player " << winner+1 << " won!! Congratulations!" << std::endl;
+            lg->write_winner(winner);
+        }
+    }
 
 	close();
 	return 0;
@@ -175,7 +179,6 @@ void cmdParse(int argc , char* argv[])
                 {
                     replaying = true;
                     lg->read_log_header();
-                    std::cout << "Operation successfully performed\n";
                     break;
                 }
                 else
@@ -248,9 +251,24 @@ void cmdParse(int argc , char* argv[])
         }
         else if ( strcmp(argv[i], "-log") == 0 )
         {
-            std::cout << "LOG" << std::endl;
             keep_log = true;
         } 
+        else if ( strcmp(argv[i], "-seed") == 0 )
+        {
+            if(argv[i+1] == NULL)
+            {
+                printf( "Missing seed number!\n" );
+                exit(-1);   
+            }
+            else if( atoi(argv[i+1]) > 0 ){
+                seed = atoi(argv[i+1]);
+            }
+            else{
+                printf( "Error on seed number!\n" );
+                exit(-1);
+            }
+         }
+     
     }
     num_SPlayers = num_Players;
 }
