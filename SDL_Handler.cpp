@@ -164,13 +164,6 @@ void close()
 
 bool load_Media(char* lvl)
 {
-	//Loading success flag
-	bool success = true;
-	if( !load_Map(lvl) )
-	{
-		printf("Error loading map!");
-		success = false;
-	}
     grass = bitmap_Loader("Images/grass.bmp");
 	wall = bitmap_Loader("Images/brick_wall.bmp");
 	stone = bitmap_Loader("Images/stone_wall.bmp");
@@ -183,7 +176,7 @@ bool load_Media(char* lvl)
     switch_pu =  bitmap_Loader("Images/switch_powerup.bmp");	
     slide_pu =  bitmap_Loader("Images/slide_powerup.bmp");
     
-    return success;
+    return true;
 }
 void draw_Player(std::vector<Player*> players)
 {

@@ -521,8 +521,8 @@ int  next_action()
     bool cfp = check_for_players();
     
     plan = new std::deque<Actions>();
-    if ( turnsWaiting > 6){
-        turnsWaiting = 7;
+    if ( turnsWaiting > 16){
+        turnsWaiting = 17;
         /*Survival above all */
         flee_bombs();
         if ( plan->empty() && in_danger){

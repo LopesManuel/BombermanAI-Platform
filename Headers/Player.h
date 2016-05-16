@@ -54,6 +54,11 @@ public:
     void slider_mode(bool t){slider = t;};
     //Set positions for replay 
     void set_position(int xx, int yy);
+    
+    //Set ai agent that controls this player
+    void set_agent(char *a){agent = a;};
+    //Get ai agent that controls this player
+    char* get_agent(){return agent;};    
 private:
 	//Player velocity
 	const int VELOCITY = SPRITE_SIZE;	 
@@ -71,6 +76,8 @@ private:
 	bool connected;
 	//Path to skin file
 	const char* skin;
+    // AI agent that controls this player
+    char* agent;
     //Max & current number of bombs at the same time
     int max_num_boms = 1;
     int num_bombs = 0;

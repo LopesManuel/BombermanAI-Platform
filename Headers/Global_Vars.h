@@ -69,6 +69,8 @@ inline int mIndex( int x, int y)
 
 //Waits for map update before changing it
 extern bool map_updated;
+//Check if maps is drawn on screen, if not it fastnens the pace
+extern bool draw_screen;
 
 // Game tiles' sprite
 enum Tiles

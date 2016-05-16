@@ -13,7 +13,7 @@ public:
     /* Writes every state of the game*/
     void write_state(std::vector<Player*> &all_Players);
     /* Writes who won */
-    void write_winner(int n);
+    void write_winner(int n , char * agent);
     /* Reads the log header*/
     void read_log_header();
     /* Reads every state of the game and replays it*/

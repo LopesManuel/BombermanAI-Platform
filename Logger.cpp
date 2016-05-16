@@ -5,8 +5,11 @@ void Logger::write_Log()
     int serial_number = rand() % 9999;
     char buffer [33];
     std::sprintf(buffer,"%d",serial_number); 
-
+    char seedstring[4];
+    std::sprintf(seedstring,"%d",seed); 
     std::string path = "Logs/log_";
+    path += seedstring;
+    path += "_";
     path += buffer;
     path += "_";
     path += get_date();
@@ -51,11 +54,11 @@ void Logger::write_state(std::vector<Player*> &all_Players)
         log_data << last_log;
     }
 }
-void Logger::write_winner(int winner)
+void Logger::write_winner(int winner, char * agent)
 {
     log_data << "-----------------------------------------------------\n";    
     if ( winner != -1)
-        log_data << " Player : " << winner+1 << " won!!";
+        log_data << " Player : " << winner+1 << " won!! Agent:" << agent;
     else
         log_data << " Draw !!";
 }
@@ -150,7 +153,9 @@ void Logger::read_log_header()
             while(iss >> word) {
                 if ( word.compare(":") == 0 ){
                     iss >> word;
-                    std::cout << "Player " << atoi(word.c_str()) << " won!" << std::endl;
+                    std::cout << "Player " << atoi(word.c_str());
+                    iss >> word;
+                    std::cout <<" agent: "<< word << " won!" << std::endl;
                 }
                 else if ( word.compare("Draw") == 0 ){
                     std::cout << "Draw!"<< std::endl;

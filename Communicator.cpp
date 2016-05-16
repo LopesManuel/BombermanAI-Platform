@@ -155,7 +155,10 @@ void get_Action(int i, std::vector<Player*> players, Map *map){
     oss << conn << " " ;
     for ( int j = 0; j < num_SPlayers; j++)
     {
-        oss << " " << players[j]->get_mapX() << " "  << players[j]->get_mapY() << " " << players[j]->get_Range() << " " << players[j]->is_Alive() << " " << players[j]->get_Speed() << " " << players[j]->get_Team_Id();
+        if ( draw_screen )
+            oss << " " << players[j]->get_mapX() << " "  << players[j]->get_mapY() << " " << players[j]->get_Range() << " " << players[j]->is_Alive() << " " << players[j]->get_Speed() << " " << players[j]->get_Team_Id();
+        else
+            oss << " " << players[j]->get_mapX() << " "  << players[j]->get_mapY() << " " << players[j]->get_Range() << " " << players[j]->is_Alive() << " " << 500 << " " << players[j]->get_Team_Id();
     }
     oss << std::endl;
     std::string var = oss.str();

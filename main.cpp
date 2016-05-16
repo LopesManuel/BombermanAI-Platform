@@ -12,7 +12,7 @@ const int NUM_COLS = SCREEN_WIDTH / SPRITE_SIZE;
 const int NUM_ROWS = SCREEN_HEIGHT / SPRITE_SIZE;
 
 int speed;
-int seed; 
+int seed = -1; 
 // Global logic 
 int gameover = 0;
 
@@ -24,6 +24,9 @@ SDL_Surface* gScreenSurface = NULL;
 
 //Temporary events
 SDL_Event event;
+
+// to check if needs to draw
+bool draw_screen = true;
 
 //Players' holder
 Player* player1 = new Player("Images/player.bmp" , 1, 1, 1, 1);
@@ -84,13 +87,19 @@ int main ( int argc, char *argv[] )
     init_Players();
 	
     //Start up SDL and create window
-	if( !init() )
+	if( draw_screen && !init() )
 	{
 		printf( "Failed to initialize!\n" );
 		exit(-1);
 	}
+	//Loads lvl map
+	if( !load_Map(level) )
+	{
+		printf("Error loading map!");
+        exit(-1);
+	}
     //Load lvl and all images 
-	if(!load_Media(level))
+	if(draw_screen && !load_Media(level))
 	{
         std::cout << "error : " << level << std::endl;
 		printf( "Failed to load textures!\n" );
@@ -109,6 +118,10 @@ int main ( int argc, char *argv[] )
         }
         if ( keep_log )
             lg->write_Log();
+        /* Simulation time*/
+        clock_t t1,t2;
+        float diff,seconds;
+        t1=clock(); 
 		/* message pump */
 		while (!replaying && !gameover  && num_Players > 1 )
 		{
@@ -121,11 +134,27 @@ int main ( int argc, char *argv[] )
              map->update_Game(all_Players);
             if (keep_log ){
                 lg->write_state(all_Players);
-            }          
-            draw_Map(map);
-            draw_Player(all_Players);
-			//Update the surface
-			SDL_UpdateWindowSurface( gWindow );
+            }   
+            if ( draw_screen ){       
+                draw_Map(map);
+                draw_Player(all_Players);
+                //Update the surface
+                SDL_UpdateWindowSurface( gWindow );
+            }
+            //Update time counters
+            if ( count % 10000 == 0 )
+            {
+                count = 1;
+                t2=clock();
+                diff  = ((float)t2-(float)t1);
+                seconds = diff / CLOCKS_PER_SEC;
+                //4 minutes s the simulation max time
+                if ( seconds >= 300 ) 
+                {
+                    std::cout << "Simulation exceeded time limit!" << std::endl;
+                    exit(-1);
+                }
+            }
 		}
         lg->write_state(all_Players);
         /* Replays game from log file*/
@@ -147,11 +176,15 @@ int main ( int argc, char *argv[] )
         else 
         {
             int winner =  map->who_Won(all_Players);
-            if ( winner == -1)
+            if ( winner == -1){
                 std::cout << "Draw!!" << std::endl;
+                lg->write_winner(winner, NULL);
+            }
             else
-                std::cout << "Player " << winner+1 << " won!! Congratulations!" << std::endl;
-            lg->write_winner(winner);
+            {
+                std::cout << "Player " << winner+1 << " won!! Congratulations! Agent:"<< executes[winner] << std::endl;
+                lg->write_winner(winner, all_Players[winner]->get_agent());
+            }
         }
     }
 
@@ -235,7 +268,7 @@ void cmdParse(int argc , char* argv[])
                 }
                 int cx;
                 cx = snprintf ( executes[j-1], 15, "./%s", argv[i+j]);
-                
+
                 p_comm[j-1] = std::thread(connect_thread, (j-1));
                 p_comm[j-1].join(); 
             }
@@ -262,13 +295,17 @@ void cmdParse(int argc , char* argv[])
             }
             else if( atoi(argv[i+1]) > 0 ){
                 seed = atoi(argv[i+1]);
+                srand(seed);
             }
             else{
                 printf( "Error on seed number!\n" );
                 exit(-1);
             }
          }
-     
+         else if ( strcmp(argv[i], "-f") == 0 )
+         {
+             draw_screen = false;
+         }
     }
     num_SPlayers = num_Players;
 }
@@ -277,24 +314,32 @@ void init_Players()
 {
     int tmp_num_Players = num_Players;
     if( tmp_num_Players == 4 ){
+        player4->set_agent(executes[3]);
     	all_Players.insert(all_Players.begin(),player4);
         tmp_num_Players--;
     }
     if( tmp_num_Players == 3 ){
+        player3->set_agent(executes[2]);
     	all_Players.insert(all_Players.begin(),player3);
         tmp_num_Players--;
     }
     if( tmp_num_Players == 2 ){
+        player2->set_agent(executes[1]);
     	all_Players.insert(all_Players.begin(),player2);
         tmp_num_Players--;
     }
+
     if( tmp_num_Players == 1){
+        player1->set_agent(executes[0]);
         all_Players.insert(all_Players.begin(),player1);
         tmp_num_Players--;
     }
     if ( manual_Player_id != -1){
          manual_Player = all_Players[manual_Player_id];
+         if( all_Players[manual_Player_id] != NULL)
+            all_Players[manual_Player_id]->set_agent("ManualPlayer");
     }
+
 }
 
 
