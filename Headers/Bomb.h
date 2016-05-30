@@ -8,7 +8,6 @@ class Bomb
 {
 public:
 	Bomb(Player* p);
-	~Bomb();
     
   	//Returns Bomb position in the world vector
 	int get_mPosition(){ return mIndex(map_x, map_y);};

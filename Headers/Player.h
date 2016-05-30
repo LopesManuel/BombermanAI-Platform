@@ -54,11 +54,16 @@ public:
     void slider_mode(bool t){slider = t;};
     //Set positions for replay 
     void set_position(int xx, int yy);
-    
+    //Reset positions to spawn positions
+    void reset_position();
     //Set ai agent that controls this player
     void set_agent(char *a){agent = a;};
     //Get ai agent that controls this player
     char* get_agent(){return agent;};    
+    // RL episodes
+    int get_episodes(){return episodes;};
+    void add_episode(){episodes++;};
+    
 private:
 	//Player velocity
 	const int VELOCITY = SPRITE_SIZE;	 
@@ -68,6 +73,9 @@ private:
     //Position (x,y) on map
     int map_x;
     int map_y;
+    // Original spawn position
+    int orig_x;
+    int orig_y;
 	//Player's life
 	bool life;
     //Player's range
@@ -93,6 +101,8 @@ private:
     int id;
     // Team id
     int team_id;
+    // RL episodes
+    int episodes;
 };
 
 #endif

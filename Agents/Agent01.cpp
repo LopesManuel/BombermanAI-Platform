@@ -1,41 +1,49 @@
 #include "Functions.h"
+#include <functional>
+#include <fstream>
+#include <iostream>
+#include <string>
 
-//Tile node struct pos(x,y) & father
-struct node{
-    //position in map matrix
-    int x;
-    int y;
-    //is a dangerous tile?
-    bool danger;
-    //has father
-    bool has_father;
-    //father 
-    node *father;
-};
+int holes [14][2] = { {3,2},{3,3},{3,4},{3,5},{3,6},{3,7},{3,8},{1,2},{1,3},{1,4},{1,5},{1,6},{1,7},{1,8}};
+int num_holes = 14;
+// Values size
+int num_actions = 4;
+// Optimistic initialization
+bool opt_init = true;
+// Frequency with which we should explore
+float epsilon = 0.2f; 
+/* Saves the eligibility traces, same size as the 
+    feature vector. */
+float **eligibility;
+/* Vector of integers of length N that tells 
+    us how many times we’ve played each action*/
+int *counts;
+/* Discounted rewards we expect to receive if we start 
+    at state s, take action a*/
+float ***Q;
+/* Parameter function vector*/
+float **parameter_vector;
+/* Discount factor for future rewards [0.0, 1.0]*/
+float gama = 0.9f;  
+float lambda = 0.5f;
+/* Learning rate */
+float alpha = 0.1f;
 
-//Last bomb's position
-int last_bomb_pos[2];
-//Last action
-int last_action = 0;
-
-std::deque<Actions> *plan;
-// Next objectives
-int mission_x;
-int mission_y;
-bool in_danger;
-int largest_range; 
-int turnsWaiting = 111;
+int s0[2];
+int a0;
+int r0;
+int s1[2];
+int a1; // not used for Q learning
+int starting = 1;
 
 //Helper functions
 int next_action();
-double distance_Calculate(int x1, int y1, int x2, int y2);
-std::vector<Actions> get_Possible_Moves(int x, int y);
-std::deque<node> get_Possible_Positions(node *father);
-Actions get_What_Move_To_Make (int x, int y, int x2, int y2);
-bool check_for_players();
-void search_for_players();
-void flee_bombs();
-void search_for_walls();
+int start_episode();
+int step();
+int end_episode();
+int get_max_value_index();
+int e_greedy();
+void save_log();
 
 int main()
 {
@@ -43,15 +51,28 @@ int main()
     clock_t t1,t2;
     float diff,seconds; 
     int action;
-    in_danger = false;
+    int count = 1;
     
     if( connect() ) 
     {
+        Q = (float***) std::malloc(sizeof(float**) * num_actions);
+        for(int i = 0; i < num_actions; i++)
+        {
+            Q[i] = (float**) std::malloc(sizeof(float*) * NUM_ROWS);
+            for(int ir = 0; ir < NUM_ROWS; ir++)
+            {
+                Q [i][ir] =  (float*) std::malloc(sizeof(float) * NUM_COLS);
+            }
+        }
         //Allocate space to world map
         wordl_map = (char**) std::malloc(sizeof(char*) * NUM_ROWS);
+        eligibility =  (float**) std::malloc(sizeof(float*) * NUM_ROWS);
+        parameter_vector =  (float**) std::malloc(sizeof(float*) * NUM_ROWS);
         for(int i = 0; i < NUM_ROWS; i++)
         {
             wordl_map[i] = (char*) std::malloc(sizeof(char) * NUM_COLS);
+            eligibility[i] =  (float*) std::malloc(sizeof(float) * NUM_COLS);
+            parameter_vector[i] =  (float*) std::malloc(sizeof(float) * NUM_COLS);
         }
         //Allocate space for players positions
         x = (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
@@ -60,6 +81,8 @@ int main()
         speed = (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
         alive = (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
         teams =  (int*) std::malloc(sizeof(int) * NUM_PLAYERS);
+        counts =  (int*) std::malloc(sizeof(int) * num_actions);
+
         //Game loop
         while( !gameover )
         {
@@ -85,465 +108,188 @@ int main()
                 /* Agent only have 1sec to give the next action*/
                 std::cout << "TIMEOUT"<<std::endl;
             }
+            count++;
+            if ( count % 1000 )
+            {
+                count = 1;  
+                save_log();
+            }
         }
     }
     return 0;
 }
 
-double distance_Calculate(int x1, int y1, int x2, int y2)
-{
-    int x = x1 - x2;
-    int y = y1 - y2;
-    double dist;
-
-    dist = pow(x,2)+pow(y,2);           //calculating distance by euclidean formula
-    dist = sqrt(dist);                  //sqrt is function in math.h
-
-    return dist;
-}
-
-std::vector<Actions> get_Possible_Moves(int x, int y)
-{
-    std::vector<Actions> possible_moves;
-
-    if( wordl_map[x + 1][y] != STONE &&  wordl_map[x + 1][y] != WALL &&  wordl_map[x + 1][y] != BOMB &&  wordl_map[x + 1][y] != EXPLOSION)
-    {
-        possible_moves.push_back(DOWN); //DOWN
-    }
-    if( wordl_map[x - 1][y] != STONE &&  wordl_map[x - 1][y] != WALL &&  wordl_map[x - 1][y] != BOMB &&  wordl_map[x - 1][y] != EXPLOSION)
-    {
-        possible_moves.push_back(UP); //UP
-    }
-    if( wordl_map[x][y + 1] != STONE &&  wordl_map[x][y + 1] != WALL &&  wordl_map[x][y + 1] != BOMB &&  wordl_map[x][y + 1] != EXPLOSION)
-    {
-        possible_moves.push_back(RIGHT); //RIGHT
-    }
-    if( wordl_map[x][y -1] != STONE &&  wordl_map[x][y - 1] != WALL &&  wordl_map[x][y - 1] != BOMB &&  wordl_map[x][y - 1] != EXPLOSION)
-    {
-        possible_moves.push_back(LEFT); //LEFT
-    }
-
-    return possible_moves;
-}
-Actions get_What_Move_To_Make (int x, int y, int x2, int y2)
-{
-    if( x < x2 )
-    {
-        return DOWN; //DOWN
-    }
-    if( x > x2 )
-    {
-        return UP;
-    }
-    else if( y < y2)
-    {
-        return RIGHT;
-    }
-    else if( y > y2)
-    {
-        return LEFT;
-    }
-
-    return STOP;
-}
-
-std::deque<node> get_Possible_Positions(node *father)
-{
-    int x = father->x; 
-    int y = father->y;
-    std::deque<node> possible_moves;
-    /* Flees from bombs */
-    if(  wordl_map[x + 1][y] != STONE && wordl_map[x + 1][y] != WALL  && wordl_map[x + 1][y] != BOMB && wordl_map[x + 1][y] != EXPLOSION)
-    {   
-        node pos = {x+1,y,false,true,father};
-        possible_moves.push_back(pos); //DOWN
-    }
-    if( wordl_map[x - 1][y] != STONE &&  wordl_map[x - 1][y] != WALL &&   wordl_map[x - 1][y] != BOMB && wordl_map[x - 1][y] != EXPLOSION)
-    {
-        node pos = {x-1, y,false,true,father};
-        possible_moves.push_back(pos); //DOWN
-    }
-    if( wordl_map[x][y +1] != STONE && wordl_map[x][y + 1] != WALL && wordl_map[x][y + 1] != BOMB &&  wordl_map[x][y + 1] != EXPLOSION)
-    {
-        node pos = { x, y+1,false,true,father};
-        possible_moves.push_back(pos); //DOWN
-    }
-    if(  wordl_map[x][y -1] != STONE && wordl_map[x][y - 1] != WALL && wordl_map[x][y - 1] != BOMB &&  wordl_map[x][y - 1] != EXPLOSION)
-    {
-        node pos = { x, y-1,false,true,father};
-        possible_moves.push_back(pos); //DOWN
-    }
-    return possible_moves;
-} 
-
-bool check_for_players(){
-    /* Update largest range */
-    double lr = -1;
-    int lr_id = -1;
-    for ( int i = 0; i < NUM_PLAYERS; i++)
-    {
-        if( alive[i])
-        {
-            if ( r[i] > lr )
-            {
-                lr = r[i];
-                lr_id = i;
-            }
-        }
-    }
-    largest_range = r[lr_id];
-    /* now check if anyplayer in range*/
-    double min_dist = 9999.00;
-    int min_dist_pid = -1;
-    for ( int i = 0; i < NUM_PLAYERS; i++)
-    {
-        if( i != PLAYER_ID && alive[i])
-        {
-            double tmp_dist = distance_Calculate(x[PLAYER_ID], y[PLAYER_ID], x[i], y[i]);
-            if ( tmp_dist - r[i] <= 0 && (tmp_dist - r[i]) < min_dist )
-            {
-                min_dist = tmp_dist;
-                min_dist_pid = i;
-            }
-        }
-    }
-    if ( min_dist_pid != -1){
-        mission_x = x[min_dist_pid];
-        mission_y = y[min_dist_pid];
-        return true;
-    }
-    return false;
-}
-
-void search_for_players()
-{
-    bool seen;
-    bool stop_exploration = false;  
-    /* Go to player 1 */
-    node root = {x[PLAYER_ID], y[PLAYER_ID],false ,NULL};
-    std::deque<node> visited;
-    visited.push_front(root);
-    std::deque<node> explore = get_Possible_Positions(&root);
-    for( int i = 0; i < explore.size(); i++)
-    {
-        /* Check if it has a pathway to anyplayer */
-        for ( int p = 0; p < NUM_PLAYERS; p++)
-        {
-            if( p != PLAYER_ID && alive[p])
-            {
-                if ( (explore[i].x == x[p] &&  explore[i].y == y[p]))
-                {
-                    if ( distance_Calculate(explore[i].x, explore[i].y, x[PLAYER_ID], y[PLAYER_ID]) < r[PLAYER_ID]  )
-                    {
-                        plan->push_front(FIRE);
-                        stop_exploration = true;
-                        break;
-                    }
-                    node* fat = explore[i].father;
-                    plan->push_front(get_What_Move_To_Make(fat->x, fat->y, explore[i].x, explore[i].y));
-                    while ( fat->has_father )
-                    {
-                        plan->push_front(get_What_Move_To_Make(fat->father->x, fat->father->y, fat->x, fat->y));
-                        fat = fat->father;
-                    }
-                    if ( !plan->empty() )
-                    {
-                        explore.clear();
-                        stop_exploration = true;
-                        break;
-                    }
-                }
-            }
-        } 
-    }
-    while( !explore.empty() ) 
-    {
-        visited.push_front(explore.front());
-        explore.pop_front();
-        
-        std::deque<node> tmp = get_Possible_Positions(&visited.front());
-        for( int i = 0; i < tmp.size(); i++)
-        {
-            seen = false;
-            //Checks if it has been already visited
-            for ( int j = 0; j < visited.size(); j++)
-            {
-                if ( tmp[i].x == visited[j].x &&  tmp[i].y == visited[j].y ){
-                    seen = true;
-                    break;
-                }
-            }
-            //Checks if it has been pinned to explore
-            for ( int j = 0; j < explore.size(); j++)
-            {
-                if ( tmp[i].x == explore[j].x &&  tmp[i].y == explore[j].y ){
-                    seen = true;
-                    break;
-                }
-            }
-            if ( !seen )
-            {
-
-                explore.push_back(tmp[i]);
-                /* Check if it has a pathway to anyplayer */
-                for ( int p = 0; p < NUM_PLAYERS; p++)
-                {
-                    if( p != PLAYER_ID && alive[p])
-                    {
-                        if ( (tmp[i].x == x[p] &&  tmp[i].y == y[p]))
-                        {
-                            if ( distance_Calculate(tmp[i].x, tmp[i].y, x[PLAYER_ID], y[PLAYER_ID]) < r[PLAYER_ID]  )
-                            {
-                                plan->push_front(FIRE);
-                                stop_exploration = true;
-                                break;
-                            }
-                            node* fat = tmp[i].father;
-                            plan->push_front(get_What_Move_To_Make(fat->x, fat->y, tmp[i].x, tmp[i].y));
-                            while ( fat->has_father )
-                            {
-                                plan->push_front(get_What_Move_To_Make(fat->father->x, fat->father->y, fat->x, fat->y));
-                                fat = fat->father;
-                            }
-                            if ( !plan->empty() )
-                            {
-                                explore.clear();
-                                stop_exploration = true;
-                                break;
-                            }
-                        }
-                    }
-                } 
-                if ( stop_exploration ) 
-                    break;
-            }
-        }
-    }
-}
-
-void flee_bombs(){
-    bool seen;
-    bool stop_exploration = false;
-    int bomb_x = -1;
-    int bomb_y = -1;
-
-    /* Check for bombs */
-    for ( int i = -largest_range; i < largest_range; i++)
-    {
-        if( x[PLAYER_ID]+i >= 0 && x[PLAYER_ID]+i < NUM_ROWS && wordl_map[x[PLAYER_ID] + i][y[PLAYER_ID]] == BOMB )
-        {   
-            bomb_x = x[PLAYER_ID]+i;
-            bomb_y = y[PLAYER_ID];
-            break;
-        }
-        if(  y[PLAYER_ID]+i >= 0 && y[PLAYER_ID]+i < NUM_COLS &&  wordl_map[x[PLAYER_ID] ][y[PLAYER_ID] + i] == BOMB )
-        {   
-            bomb_x = x[PLAYER_ID];
-            bomb_y = y[PLAYER_ID]+i;
-            break;
-        }
-    } 
-    if ( bomb_x != -1 && bomb_y != -1) 
-    {
-        node root = {x[PLAYER_ID], y[PLAYER_ID],false ,NULL};
-        std::deque<node> visited;
-        visited.push_front(root);
-        std::deque<node> explore = get_Possible_Positions(&root);
-        for( int i = 0; i < explore.size(); i++)
-        {
-            if ( distance_Calculate(explore[i].x, explore[i].y, bomb_x, bomb_y) > largest_range 
-                || (explore[i].x !=  bomb_x  && explore[i].y !=  bomb_y) )
-            {
-                in_danger = true;
-                node* fat = explore[i].father;
-                plan->push_front(get_What_Move_To_Make(fat->x, fat->y, explore[i].x, explore[i].y));
-                while ( fat->has_father )
-                {
-                    plan->push_front(get_What_Move_To_Make(fat->father->x, fat->father->y, fat->x, fat->y));
-                    fat = fat->father;
-                }
-                if ( !plan->empty() )
-                {
-                    explore.clear();
-                    stop_exploration = true;
-                    break;
-                }
-            }
-        }
-        while( !explore.empty() ) 
-        {
-            visited.push_front(explore.front());
-            explore.pop_front();
-            
-            std::deque<node> tmp = get_Possible_Positions(&visited.front());
-            for( int i = 0; i < tmp.size(); i++)
-            {
-                seen = false;
-                //Checks if it has been already visited
-                for ( int j = 0; j < visited.size(); j++)
-                {
-                    if ( tmp[i].x == visited[j].x &&  tmp[i].y == visited[j].y ){
-                        seen = true;
-                        break;
-                    }
-                }
-                //Checks if it has been pinned to explore
-                for ( int j = 0; j < explore.size(); j++)
-                {
-                    if ( tmp[i].x == explore[j].x &&  tmp[i].y == explore[j].y ){
-                        seen = true;
-                        break;
-                    }
-                }
-                if ( !seen )
-                {
-                    explore.push_back(tmp[i]);
-                    
-                    if ( distance_Calculate(tmp[i].x, tmp[i].y, bomb_x, bomb_y) > largest_range 
-                        || (tmp[i].x !=  bomb_x  && tmp[i].y !=  bomb_y) )
-                    {
-                        in_danger = true;
-                        node* fat = tmp[i].father;
-                        plan->push_front(get_What_Move_To_Make(fat->x, fat->y, tmp[i].x, tmp[i].y));
-                        while ( fat->has_father )
-                        {
-                            plan->push_front(get_What_Move_To_Make(fat->father->x, fat->father->y, fat->x, fat->y));
-                            fat = fat->father;
-                        }
-                        if ( !plan->empty() )
-                        {
-                            explore.clear();
-                            stop_exploration = true;
-                            break;
-                        }
-                    }
-                    if ( stop_exploration ) 
-                        break;
-                }
-            }
-        }
-    }
-}
-
-void search_for_walls(){
-    bool seen;
-    bool stop_exploration = false;
-    
-    if ( wordl_map[x[PLAYER_ID]+1][y[PLAYER_ID]] == STONE || wordl_map[x[PLAYER_ID]-1][y[PLAYER_ID]] == STONE ||
-        wordl_map[x[PLAYER_ID]][y[PLAYER_ID] -1] == STONE || wordl_map[x[PLAYER_ID]][y[PLAYER_ID] +1] == STONE)
-    {
-        plan->push_front(FIRE);
-    }
-    else
-    {
-        node root = {x[PLAYER_ID], y[PLAYER_ID],false ,NULL};
-        std::deque<node> visited;
-        visited.push_front(root);
-        std::deque<node> explore = get_Possible_Positions(&root);
-        for( int i = 0; i < explore.size(); i++)
-        {
-            if ( wordl_map[explore[i].x+1][explore[i].y] == STONE || wordl_map[explore[i].x-1][explore[i].y] == STONE ||
-                wordl_map[explore[i].x][explore[i].y -1] == STONE || wordl_map[explore[i].x][explore[i].y +1] == STONE)
-            {
-                node* fat = explore[i].father;
-                plan->push_front(get_What_Move_To_Make(fat->x, fat->y, explore[i].x, explore[i].y));
-                while ( fat->has_father )
-                {
-                    plan->push_front(get_What_Move_To_Make(fat->father->x, fat->father->y, fat->x, fat->y));
-                    fat = fat->father;
-                }
-                if ( !plan->empty() )
-                {
-                    explore.clear();
-                    stop_exploration = true;
-                    break;
-                }
-            }
-        }
-        while( !explore.empty() ) 
-        {
-            visited.push_front(explore.front());
-            explore.pop_front();
-            std::deque<node> tmp = get_Possible_Positions(&visited.front());
-            for( int i = 0; i < tmp.size(); i++)
-            {
-                seen = false;
-                //Checks if it has been already visited
-                for ( int j = 0; j < visited.size(); j++)
-                {
-                    if ( tmp[i].x == visited[j].x &&  tmp[i].y == visited[j].y ){
-                        seen = true;
-                        break;
-                    }
-                }
-                //Checks if it has been pinned to explore
-                for ( int j = 0; j < explore.size(); j++)
-                {
-                    if ( tmp[i].x == explore[j].x &&  tmp[i].y == explore[j].y ){
-                        seen = true;
-                        break;
-                    }
-                }
-                if ( !seen )
-                {
-                    explore.push_back(tmp[i]);
-                    
-                    if ( wordl_map[tmp[i].x+1][tmp[i].y] == STONE || wordl_map[tmp[i].x-1][tmp[i].y] == STONE ||
-                        wordl_map[tmp[i].x][tmp[i].y -1] == STONE || wordl_map[tmp[i].x][tmp[i].y +1] == STONE)
-                    {
-                        node* fat = tmp[i].father;
-                        plan->push_front(get_What_Move_To_Make(fat->x, fat->y, tmp[i].x, tmp[i].y));
-                        while ( fat->has_father )
-                        {
-                            plan->push_front(get_What_Move_To_Make(fat->father->x, fat->father->y, fat->x, fat->y));
-                            fat = fat->father;
-                        }
-                        if ( !plan->empty() )
-                        {
-                            explore.clear();
-                            stop_exploration = true;
-                            break;
-                        }
-                    }
-                    if ( stop_exploration ) 
-                        break;
-                }
-            }
-        }
-    }
-}
-/* AI agents next action */
+/* RL agents next action */
 int  next_action()
 {
     int action = -1;
-    turnsWaiting++;
-    //Updates mission objective position
-    bool cfp = check_for_players();
-    
-    plan = new std::deque<Actions>();
-    if ( turnsWaiting > 16){
-        turnsWaiting = 17;
-        /*Survival above all */
-        flee_bombs();
-        if ( plan->empty() && in_danger){
-            in_danger = false;
-            turnsWaiting = 0;
-            plan->push_front(STOP);
-        }
-        /*If it's not in danger go after players*/
-        if ( plan->empty())
-            search_for_players();        
-        /*Ppen pathways to players */
-        if ( plan->empty())
-            search_for_walls();
-            
-        if ( !plan->empty() )
+    if ( starting )
+        action = start_episode();
+    else 
+    {
+        for ( int i = 0; i < NUM_PLAYERS; i++)
         {
-            action = plan->front();
-            plan->pop_front();
+            r0 = 0;
+         //   if ( i != PLAYER_ID && x[PLAYER_ID] == x[i] && y[PLAYER_ID] == y[i] )
+            if ( x[PLAYER_ID] == 2 && y[PLAYER_ID] == 8 )
+            {
+                r0 = 3;
+                break;
+            }
+   /*         for ( int h = 0; h < num_holes; h++)
+            {
+                if ( x[PLAYER_ID] == holes[h][0] && y[PLAYER_ID] == holes[h][1] )
+                {
+                    r0 = -1;
+                    break;
+                }
+            }
+            if ( r0 == -1 ) break; */
         }
-
+        action = step();
     }
-
     return action;
+}
+
+int start_episode()
+{
+    starting = 0;
+    for (int i = 0; i < NUM_ROWS; ++i)	
+    {
+        for (int j = 0; j < NUM_COLS; ++j)	
+        {
+            eligibility[i][j] = 0.0f; // 1. e = 0;
+            if(!opt_init)
+                parameter_vector[i][j] = 0.0f;
+            else{
+                parameter_vector[i][j] = 1.0f / (float)NUM_ROWS*NUM_COLS;
+            }
+        }
+    }
+    for (int a = 0; a < num_actions; a++)	
+    {
+        float Qoa = 0.0;
+        counts[a] = 0;
+        for (int i = 0; i < NUM_ROWS; ++i)	
+        {
+            for (int j = 0; j < NUM_COLS; ++j)	
+            {
+                Q[a][i][j] = 0.0f; 
+            }
+        }
+    }
+    //Update s0 & a0
+    a0 = get_max_value_index();
+    s1[0] = x[PLAYER_ID];
+    s1[1] = y[PLAYER_ID];
+    return a0;
+}
+/* calculate the target for Q(s,a)
+Q learning target is Q(s0,a0) = r0 + gamma * max_a Q[s1,a] */
+int step()
+{
+    // get next action a1
+    int action = e_greedy();
+    // update s0,s1,a0,a1
+    s0[0] = s1[0];
+    s0[1] = s1[1];
+    s1[0] = x[PLAYER_ID];
+    s1[1] = y[PLAYER_ID];
+    //Q learning
+    float qmax = Q[get_max_value_index()][x[PLAYER_ID]][y[PLAYER_ID]];
+    float target = r0 + gama * qmax;
+    // simpler and faster update without eligibility trace
+    // update Q[sa] towards it with some step size
+    float update = alpha * (target - Q[a0][s0[0]][s0[1]]);
+    Q[a0][s0[0]][s0[1]] += update;
+    
+    a0 = action;
+    return action;
+}
+
+int end_episode()
+{
+    
+}
+
+/* choose the action that maximizes the current value function with 
+ * probability (1 - e) and a random action with the probability e */
+int e_greedy( )
+{
+	float rnumb = (float) (rand()%100 + 1)/100;
+	if( rnumb < epsilon)
+    {
+		return rand() % num_actions;
+	}
+	else
+    {
+		return get_max_value_index();
+	}
+
+}
+
+int get_max_value_index()
+{
+    float qmax = 0.0f;
+    int qmax_index = 0;
+    for (int a = 0; a < num_actions; a++)	
+    {
+        if ( Q[a][x[PLAYER_ID]][y[PLAYER_ID]] > qmax ){
+            qmax = Q[a][x[PLAYER_ID]][y[PLAYER_ID]];
+            qmax_index = a;
+        }
+    }
+	return qmax_index;
+}
+
+void save_log()
+{
+    std::fstream log_data;
+    char seedstring[4];
+    std::sprintf(seedstring,"%d",PLAYER_ID); 
+    std::string path = "Q_values";
+    path += "_";
+    path += seedstring;
+    log_data.open(path,std::fstream::out );   
+    std::string current_log = ""; 
+    for ( int a = 0; a < num_actions; a++ )
+    {
+        for(int i = 0; i < NUM_ROWS; i++)
+        {
+            for(int j = 0; j < NUM_COLS; j++)
+            {
+                current_log += std::to_string(Q[a][i][j]); 
+                current_log += " ";	
+            }
+            current_log += "\n";
+        }
+        current_log += "-------------------------\n";
+    }
+    log_data << current_log;
+}
+
+void read_log()
+{
+    std::fstream log_data;
+    char seedstring[4];
+    std::sprintf(seedstring,"%d",PLAYER_ID); 
+    std::string path = "Qvalues";
+    path += "_";
+    path += seedstring;
+    log_data.open(path,std::fstream::out );   
+    std::string current_log = ""; 
+    for ( int a = 0; a < num_actions; a++ )
+    {
+        for(int i = 0; i < NUM_ROWS; i++)
+        {
+            for(int j = 0; j < NUM_COLS; j++)
+            {
+                current_log += std::to_string(Q[a][i][j]); 
+                current_log += " ";	
+            }
+            current_log += "\n";
+        }
+        current_log += "-------------------------\n";
+    }
+    log_data << current_log;
 }

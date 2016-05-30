@@ -11,6 +11,12 @@ Map::Map(char* m )
     bombs = new std::deque<Bomb*>();
 }
 
+void Map::add_bomb(Bomb* temp)
+{
+    std::lock_guard<std::mutex> guard(myMutex); 
+    bombs->push_back(temp);
+}
+
 bool Map::can_Move(Player* player, int movement)
 {
     int player_position = player->get_mPosition();
@@ -64,14 +70,14 @@ bool Map::update_Game(std::vector<Player*> players)
 {    
     bool changed = false;
     map_updated = false;
-   // std::cout << "B" << std::endl;
 	//Draws all bombs
     for ( int i = 0; i < (*bombs).size(); i++)
     {
         Bomb* b = (*bombs)[i];
-		if( b != NULL && b->is_Alive())
-		{   //Check if it exploded
-            if(b->update()){               
+        if ( b != nullptr && b->is_Alive() )
+        {   //Check if it exploded
+            if(b->update())
+            {       
                 if( b->get_turns_2explosion() > 0 )
                 {
                     map[b->get_mPosition()] = BOMB;
@@ -102,12 +108,8 @@ bool Map::update_Game(std::vector<Player*> players)
                 b->move(b->is_Sliding());
                 changed = true;
             }
-   		}
-        else{
-            bombs->erase(bombs->begin()+i);
         }
 	}
-    //std::cout << "P" << std::endl;
     /*Checks if any player died this turn  */
     for ( Player* p : players)
     {
@@ -150,7 +152,6 @@ bool Map::update_Game(std::vector<Player*> players)
             }
 		}
 	}  
-    //std::cout << "U" << std::endl;
     map_updated = true;
     return changed;
 }
@@ -263,4 +264,19 @@ bool Map::can_Slide(Bomb* bomb, int movement)
 	}        
     bomb->set_Slide(-1);
     return false;     
+}
+void Map::check_Learners(std::vector<Player*> players)
+{
+     /*Checks if any player got to the objective this turn  */
+    for ( Player* p : players)
+    {
+		if( p != NULL && p->is_Alive())
+		{
+            if ( p->get_mapX() == objective_x && p->get_mapY() == objective_y )
+            {
+                std::cout << "Player: " << p->get_Id()  <<" scored!!" << std::endl;
+                p->reset_position();
+            } 
+        }
+    }
 }

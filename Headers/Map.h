@@ -19,12 +19,14 @@ public:
     // Updates game actions
     bool update_Game(std::vector<Player*> players);
     // Handle all events related with the bombs
-    void add_bomb(Bomb* temp){bombs->push_back(temp);};
+    void add_bomb(Bomb* temp);
     void clear_explosion(int pos, int range);
     void explode(int pos, int range, int direction);
     void detonate(int player_id);
     //Returns the player that won    
     int who_Won(std::vector<Player*> players);
+    //Checks if players 
+    void check_Learners(std::vector<Player*> players);
 
 private:
 	//Holds the world map

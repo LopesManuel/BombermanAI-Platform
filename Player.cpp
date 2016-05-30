@@ -3,6 +3,8 @@
 Player::Player(const char* s, int pos_x, int pos_y, int i, int ti)
 {
 	skin = s;
+    orig_x = pos_x;
+    orig_y = pos_y;
 	x = pos_x * SPRITE_SIZE;
 	y = pos_y * SPRITE_SIZE;
     map_x = pos_x;
@@ -18,7 +20,16 @@ void Player::set_position(int xx, int yy)
     map_y = yy; 
     x = xx * SPRITE_SIZE; 
 	y = yy * SPRITE_SIZE;
-};
+}
+
+void Player::reset_position()
+{
+    map_x = orig_x; 
+    map_y = orig_y; 
+    x = orig_x * SPRITE_SIZE; 
+	y = orig_y * SPRITE_SIZE;
+}
+
 void Player::move( int direction )
 {
 	switch (direction) 

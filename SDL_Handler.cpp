@@ -72,6 +72,12 @@ void handle_Replay_Controls( SDL_Event event , int &state,Logger *lg, std::vecto
 				case SDLK_RIGHT:
                     state++;
 					break;
+				case SDLK_UP:
+                    state += 20;
+					break;
+				case SDLK_DOWN:
+                    state -= 20;
+					break;
             }
             lg->read_state(state, all_Players); 
     }

@@ -16,6 +16,7 @@
 #include <thread>
 //For using fork()
 #include <unistd.h>
+#include <mutex>
 
 //Screen dimension constants 
 extern const int SCREEN_WIDTH;
@@ -69,6 +70,8 @@ inline int mIndex( int x, int y)
 
 //Waits for map update before changing it
 extern bool map_updated;
+extern bool bomb_added; 
+
 //Check if maps is drawn on screen, if not it fastnens the pace
 extern bool draw_screen;
 
@@ -92,6 +95,11 @@ enum PowerUps
     SWITCH_PUP= 't',
     SLIDE_PUP = 'l'
 };
+
+extern bool learning;
+extern int objective_x;
+extern int objective_y;
+
 /************************ LOG ****************************/
 extern std::fstream log_data;
 
@@ -103,7 +111,7 @@ extern int state;
 //Group of threads to handle player's communication
 extern std::thread* p_comm;
 //Comands to execute the ai agent program
-extern char executes[4][15];
+extern char executes[4][25];
 //File descriptores 
 extern int  fdread[4][2];
 extern int  fdwrite[4][2];
@@ -119,5 +127,7 @@ enum Protocol
     POSITIONS = 'P', // Every players' positions 
 };
 
+// a global instance of std::mutex to protect global variable
+extern std::mutex myMutex;
 
 #endif

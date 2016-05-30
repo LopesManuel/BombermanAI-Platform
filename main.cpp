@@ -30,9 +30,9 @@ bool draw_screen = true;
 
 //Players' holder
 Player* player1 = new Player("Images/player.bmp" , 1, 1, 1, 1);
-Player* player2 = new Player("Images/player2.bmp" , 18, 13, 2, 2);
-Player* player3 = new Player("Images/player.bmp" , 1, 13, 3, 3);
-Player* player4 = new Player("Images/player2.bmp" , 18, 1, 4, 4);
+Player* player2 = new Player("Images/player2.bmp" , 18, 1, 2, 2);
+Player* player3 = new Player("Images/player3.bmp" , 1, 13, 3, 3);
+Player* player4 = new Player("Images/player4.bmp" , 5, 13, 4, 4);
 std::vector<Player*> all_Players;
 
 //Number of active players
@@ -54,6 +54,7 @@ char* level;
 
 //Waits for map update before changing it
 bool map_updated = true;
+bool bomb_added = true; 
 
 //Map object to control all events
 Map* map;
@@ -61,10 +62,12 @@ Map* map;
 //Group of threads to handle player's communication
 std::thread* p_comm;
 // Comands to execute the ai agent program
-char executes[4][15];
+char executes[4][25];
 // File descriptores 
 int  fdread[4][2];
 int  fdwrite[4][2];
+// a global instance of std::mutex to protect global variable
+std::mutex myMutex;
 
 // Log communicator
 bool keep_log = false;
@@ -72,6 +75,10 @@ int state = 0;
 bool replaying = false;
 Logger* lg =  new Logger();
 std::fstream log_data;
+
+//Reinforcement learning variables
+bool learning = false;
+int objective_x, objective_y;
     
 //Parses the comands from shell
 void cmdParse(int argc , char* argv[]);
@@ -142,7 +149,7 @@ int main ( int argc, char *argv[] )
                 SDL_UpdateWindowSurface( gWindow );
             }
             //Update time counters
-            if ( count % 10000 == 0 )
+            if ( count % 10000 == 0 && !learning)
             {
                 count = 1;
                 t2=clock();
@@ -155,6 +162,12 @@ int main ( int argc, char *argv[] )
                     exit(-1);
                 }
             }
+            //Reset positions Reinforcement Learning agents
+            if ( learning )
+            {
+                count = 1;
+                map->check_Learners(all_Players);
+            } 
 		}
         lg->write_state(all_Players);
         /* Replays game from log file*/
@@ -220,7 +233,37 @@ void cmdParse(int argc , char* argv[])
                     exit(-1);
                 }
             }
-        }       
+        }   
+        else if( strcmp(argv[i], "-learning") == 0 )
+        {
+            learning = true;
+            if ( i+1 > argc || i+2 > argc )
+            {
+                printf( "Missing arguments!\n" );
+                exit(-1);   
+            }
+            int ox = atoi(argv[i+1]);
+            if( ox <= 0 || ox >= NUM_ROWS)
+            {
+                printf( "Objective X is not in reach!\n" );
+                exit(-1);   
+            }
+            else{
+                objective_x = ox;
+            }
+            int oy = atoi(argv[i+2]);
+            if( oy <= 0 || oy >= NUM_ROWS)
+            {
+                printf( "Objective Y is not in reach!\n" );
+                exit(-1);   
+            }
+            else{
+                objective_y = oy;
+            }
+            std::cout << "Reinforcement Learning agents learning! ";
+            std::cout << "Objective: (" << objective_x  << "," << objective_y << ")"<< std::endl;
+                
+        }    
         else if( strcmp(argv[i], "-n") == 0 )
         {
             int np = atoi(argv[i+1]);
