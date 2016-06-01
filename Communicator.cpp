@@ -45,7 +45,7 @@ void connect_thread(int i )
     }
     else        // PARENT PROCESS
     {
-        int MAXLINE = 15;
+        int MAXLINE = 25;
         char line[MAXLINE];
         int rv;
         // Close file dscriptors)
@@ -55,7 +55,10 @@ void connect_thread(int i )
         //Create a string with CONNECT NUM_COLS NUM_ROWS
         char conn = CONNECT;
         std::ostringstream oss;
-        oss << conn << " " << NUM_COLS << " "  << NUM_ROWS << " "  << num_Players << " " << i << std::endl;
+        if ( !learning )
+            oss << conn << " " << NUM_COLS << " "  << NUM_ROWS << " "  << num_Players << " " << i << std::endl;
+        else
+            oss << conn << " " <<  objective_y << " "<< objective_x <<" " << NUM_COLS << " "  << NUM_ROWS << " "  << num_Players << " " << i << std::endl;
         std::string var = oss.str();
         char server_msg[MAXLINE];
         strncpy(server_msg, var.c_str(), sizeof(server_msg));

@@ -11,6 +11,9 @@
 #include <vector>
 #include <algorithm>
 #include <deque>
+#include <functional>
+#include <fstream>
+#include <string>
 
 // Communication protocol
 enum Protocol
@@ -63,6 +66,12 @@ int NUM_PLAYERS;
 // Id of the current agent
 int PLAYER_ID;
 int bomb_range = 4; 
+//Reinforcment learning objectives
+int OBJECTIVE_X;
+int OBJECTIVE_Y;
+
+//To save RL q values
+std::fstream log_data;
 
 //Gets matrix index from vector 
 inline int mIndex( int y, int x)
@@ -80,6 +89,36 @@ int *alive;
 int *speed; 
 int *teams;
 
+/* Establishes a connection with the server */
+bool connect_RL()
+{
+
+    char line[20];
+    //Get line from pipe input
+    //std::getline (std::cin,mesg);
+    std::cin.getline (line,20);
+    std::string mesg(line);
+    //Break line into protocol NUM_COLS NUM_ROWS
+    std::istringstream iss(mesg);
+    char pmesg;
+    iss >> pmesg;
+    iss >> OBJECTIVE_X; 
+    iss >> OBJECTIVE_Y; 
+    iss >> NUM_COLS;
+    iss >> NUM_ROWS;
+    iss >> NUM_PLAYERS;
+    iss >> PLAYER_ID;     
+    
+    if (pmesg == CONNECT){
+        std::cout << "CONNECTED"; 
+    }
+    else
+    {
+        std::cout << "ERROR CONNECTING" << std::endl; 
+        return false;
+    }
+    return true;
+}
 
 /* Establishes a connection with the server */
 bool connect()
@@ -119,19 +158,19 @@ bool update_Map()
     std::string world;
     iss >> pmesg;
     iss >> world;
-
     if (pmesg == MAP)
     {
-    //        std::cout << "AT " << x[PLAYER_ID] << "," << y[PLAYER_ID] <<std::endl;
-            
+       // std::cout << "AT " << x[PLAYER_ID] << "," << y[PLAYER_ID] <<std::endl;
+       // std::cout <<  NUM_ROWS  << " "  << NUM_COLS  << std::endl;
+
         for(int i = 0; i < NUM_ROWS; i++)
         {
             for(int j = 0; j < NUM_COLS; j++)
             { 
                 wordl_map[i][j] = world[mIndex(i,j)];
-    //            std::cout <<"("<< i <<"," << j<<") " <<wordl_map[i][j] << " ";
+               // std::cout <<wordl_map[i][j] << " ";
             }
-    //        std::cout << std::endl;
+           // std::cout << std::endl;
         } 
     }
     else

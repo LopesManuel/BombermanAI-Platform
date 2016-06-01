@@ -4,8 +4,6 @@
 #include <iostream>
 #include <string>
 
-int holes [14][2] = { {3,2},{3,3},{3,4},{3,5},{3,6},{3,7},{3,8},{1,2},{1,3},{1,4},{1,5},{1,6},{1,7},{1,8}};
-int num_holes = 14;
 // Values size
 int num_actions = 4;
 // Optimistic initialization
@@ -14,7 +12,7 @@ bool opt_init = true;
 float epsilon = 0.2f; 
 /* Saves the eligibility traces, same size as the 
     feature vector. */
-float ***eligibility;
+float **eligibility;
 /* Vector of integers of length N that tells 
     us how many times we’ve played each action*/
 int *counts;
@@ -57,25 +55,22 @@ int main()
     if( connect_RL() ) 
     {
         Q = (float***) std::malloc(sizeof(float**) * num_actions);
-        eligibility =  (float***) std::malloc(sizeof(int**) * num_actions);
         for(int i = 0; i < num_actions; i++)
         {
             Q[i] = (float**) std::malloc(sizeof(float*) * NUM_ROWS);
-            eligibility[i] =  (float**) std::malloc(sizeof(int*) * NUM_ROWS);
             for(int ir = 0; ir < NUM_ROWS; ir++)
             {
                 Q [i][ir] =  (float*) std::malloc(sizeof(float) * NUM_COLS);
-                eligibility[i][ir] =  (float*) std::malloc(sizeof(int) * NUM_ROWS);
             }
         }
         //Allocate space to world map
         wordl_map = (char**) std::malloc(sizeof(char*) * NUM_ROWS);
-      //  eligibility =  (float**) std::malloc(sizeof(float*) * NUM_ROWS);
+        eligibility =  (float**) std::malloc(sizeof(float*) * NUM_ROWS);
         parameter_vector =  (float**) std::malloc(sizeof(float*) * NUM_ROWS);
         for(int i = 0; i < NUM_ROWS; i++)
         {
             wordl_map[i] = (char*) std::malloc(sizeof(char) * NUM_COLS);
-       //     eligibility[i] =  (float*) std::malloc(sizeof(float) * NUM_COLS);
+            eligibility[i] =  (float*) std::malloc(sizeof(float) * NUM_COLS);
             parameter_vector[i] =  (float*) std::malloc(sizeof(float) * NUM_COLS);
         }
         //Allocate space for players positions
@@ -95,12 +90,12 @@ int main()
             {  //Updates players' information
                gameover = update_Players();
             }
+            t1=clock();
             // AI agents get next action 
             action = next_action();
-            count++;
             /* Print action to send to server */
             std::cout << action;
-            
+            count++;
             if ( count % 1000 )
             {
                 count = 1;  
@@ -119,9 +114,9 @@ int  next_action()
         action = start_episode();
     else 
     {
-        r0 = -0.0001f;
         for ( int i = 0; i < NUM_PLAYERS; i++)
         {
+            r0 = -0.0001f;
             if ( x[PLAYER_ID] == OBJECTIVE_X && y[PLAYER_ID] == OBJECTIVE_Y )
             {
                 r0 = 3.0f;
@@ -140,6 +135,7 @@ int start_episode()
     {
         for (int j = 0; j < NUM_COLS; ++j)	
         {
+            eligibility[i][j] = 0.0f; // 1. e = 0;
             if(!opt_init)
                 parameter_vector[i][j] = 0.0f;
             else{
@@ -150,12 +146,12 @@ int start_episode()
     for (int a = 0; a < num_actions; a++)	
     {
         float Qoa = 0.0;
+        counts[a] = 0;
         for (int i = 0; i < NUM_ROWS; ++i)	
         {
             for (int j = 0; j < NUM_COLS; ++j)	
             {
                 Q[a][i][j] = 0.0f; 
-                eligibility[a][i][j] = 0;
             }
         }
     }
@@ -177,29 +173,13 @@ int step()
     s1[0] = x[PLAYER_ID];
     s1[1] = y[PLAYER_ID];
     //Q learning
-    int qmax_i = get_max_value_index();
-    float qmax = Q[qmax_i][x[PLAYER_ID]][y[PLAYER_ID]];
+    float qmax = Q[get_max_value_index()][x[PLAYER_ID]][y[PLAYER_ID]];
     float target = r0 + gama * qmax;
-    
-    eligibility[a0][s0[0]][s0[1]]++;
     // simpler and faster update without eligibility trace
     // update Q[sa] towards it with some step size
     float update = alpha * (target - Q[a0][s0[0]][s0[1]]);
+    Q[a0][s0[0]][s0[1]] += update;
     
-    for (int a = 0; a < num_actions; a++)	
-    {
-        for (int i = 0; i < NUM_ROWS; ++i)	
-        {
-            for (int j = 0; j < NUM_COLS; ++j)	
-            {
-                Q[a][i][j] += update * eligibility[a][i][j];
-                if ( action == qmax_i )
-                    eligibility[a][i][j] = lambda * gama * eligibility[a][i][j];
-                else    
-                    eligibility[a][i][j] = 0;
-            }
-        }
-    }
     a0 = action;
     return action;
 }
@@ -227,12 +207,11 @@ int e_greedy( )
 
 int get_max_value_index()
 {
-    float qmax = -99999.0f;
+    float qmax = -9999.0f;
     int qmax_index = 0;
     for (int a = 0; a < num_actions; a++)	
     {
-        if ( can_move2(a) &&  Q[a][x[PLAYER_ID]][y[PLAYER_ID]] >= qmax )
-        {
+        if ( can_move2(a) && Q[a][x[PLAYER_ID]][y[PLAYER_ID]] >= qmax ){
             qmax = Q[a][x[PLAYER_ID]][y[PLAYER_ID]];
             qmax_index = a;
         }

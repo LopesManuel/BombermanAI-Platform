@@ -243,22 +243,22 @@ void cmdParse(int argc , char* argv[])
                 exit(-1);   
             }
             int ox = atoi(argv[i+1]);
-            if( ox <= 0 || ox >= NUM_ROWS)
+            if( ox <= 0 || ox > NUM_COLS)
             {
                 printf( "Objective X is not in reach!\n" );
                 exit(-1);   
             }
             else{
-                objective_x = ox;
+                objective_x = ox - 1;
             }
             int oy = atoi(argv[i+2]);
-            if( oy <= 0 || oy >= NUM_ROWS)
+            if( oy <= 0 || oy > NUM_ROWS)
             {
                 printf( "Objective Y is not in reach!\n" );
                 exit(-1);   
             }
             else{
-                objective_y = oy;
+                objective_y = oy - 1;
             }
             std::cout << "Reinforcement Learning agents learning! ";
             std::cout << "Objective: (" << objective_x  << "," << objective_y << ")"<< std::endl;
