@@ -1,4 +1,4 @@
-Bomberman as an Artificial Intelligence Platform (BAIP)
+#Bomberman as an Artificial Intelligence Platform (BAIP)
 
 The system was developed for Unix systems using the Simple DirectMedia Layer (SDL). It allows the user to interface with BAIP using the keyboard, sending information to the screen, and emulating the game simulation. Every simulation done in the platform can also be seen as a standard reinforcement learning problem, the user just needs to keep an accumulated score. Each state consists of a game frame, represented in a 2D array of characters, the dimensions of this array varies with the window screen width and height, and with the sprite size, by default the dimensions give origin to a 20 width and 15 height array. The action space consists of 6 discrete movements ( up, down, left, right, place bomb, wait), the agents move one grid cell per movement.
 
