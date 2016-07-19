@@ -52,7 +52,8 @@ int main()
             t2=clock();
             diff  = ((float)t2-(float)t1);
             seconds = diff / CLOCKS_PER_SEC;
-                std::cout << action;
+                
+            std::cout << action;
            /* if ( seconds <= 1 ){
                 // 5 plays per second 
                 usleep((CLOCKS_PER_SEC/speed[PLAYER_ID])-seconds*(CLOCKS_PER_SEC/5));
@@ -213,9 +214,10 @@ std::vector<int*> get_Possible_Positions(int x, int y)
 int  next_action()
 {
     int action = -1;
+    int rand_decision = rand() % 2;
     /* Flees from bombs */
     action = flee_bombs();
-    if ( action == -1)
+    if ( rand_decision == 0 || action == -1)
     {
         /* Destroys wall */
         if( (wordl_map[x[PLAYER_ID] + 1][y[PLAYER_ID]] == STONE || 
@@ -248,6 +250,10 @@ int  next_action()
             {
                  action = FIRE;
             }
+            else if ( actions.empty())
+            {
+                action = STOP;   
+            }
             else
             {
                 if ( y[min_dist_pid] < y[PLAYER_ID])
@@ -264,5 +270,6 @@ int  next_action()
             }
         }
     }
+
     return action;
 }

@@ -12,6 +12,11 @@ Bomb::Bomb(Player *p)
     explode = false;
     turns_2explode = turns_2explode/p->get_Speed();
     player_id = p->get_Id();
+    if ( !draw_screen )
+    {
+        turns_2explode = turns_2explode/3;
+        turns_2disapear = turns_2disapear/3;
+    }
 }
 /* TODO:
     - Moving bombs, update shall update its' position 

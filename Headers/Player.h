@@ -64,6 +64,9 @@ public:
     int get_episodes(){return episodes;};
     void add_episode(){episodes++;};
     
+    // Movement turns
+    int turns;
+    int num_bombs_planted;
 private:
 	//Player velocity
 	const int VELOCITY = SPRITE_SIZE;	 
@@ -103,6 +106,7 @@ private:
     int team_id;
     // RL episodes
     int episodes;
+
 };
 
 #endif

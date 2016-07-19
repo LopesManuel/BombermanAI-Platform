@@ -37,16 +37,9 @@ int main()
             t2=clock();
             diff  = ((float)t2-(float)t1);
             seconds = diff / CLOCKS_PER_SEC;
-            if ( seconds <= 1 ){
-                /* 5 plays per second */
-                usleep((CLOCKS_PER_SEC/speed[PLAYER_ID])-seconds*(CLOCKS_PER_SEC/5));
-                /* Print action to send to server */
                 std::cout << action;
-            }
-            else{
-                /* Agent only have 1sec to give the next action*/
-                std::cout << "TIMEOUT"<<std::endl;
-            }
+                
+         
         }
     }
     return 0;
@@ -67,6 +60,6 @@ double distanceCalculate(int x1, int y1, int x2, int y2)
 /* AI agents next action */
 int  next_action(){
     /* generate random action: */
-    int action = rand() % 4;
+    int action = rand() % 5;
     return action;   
 }

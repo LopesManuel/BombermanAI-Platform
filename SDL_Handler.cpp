@@ -265,6 +265,7 @@ bool load_Map(const char* path)
 	std::fstream fin( path, std::fstream::in);
     if ( fin == NULL)
         return false;
+    
 	/* Gets the map from the input */
 	for (int y = 0; y < NUM_ROWS; y++) 
 	{
@@ -273,7 +274,11 @@ bool load_Map(const char* path)
 			fin >> std::noskipws >> ch;
 			if(ch == '\n')
 				fin >> std::noskipws >> ch;
-                
+            if ( map_randomizer && ch == '+'){
+                int rand_decision = rand() % 5;
+                if ( rand_decision == 0 )
+                    ch = '-';
+            }    
 			world_Map[ mIndex(x,y)] = ch;
 		}
 	}

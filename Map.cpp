@@ -32,7 +32,10 @@ bool Map::can_Move(Player* player, int movement)
         map[ player_position + movement] == SWITCH_PUP ||  
         map[ player_position + movement] == SLIDE_PUP 
       )
+      {
+        player->turns++;
         return true;
+      }
     /* Can't bomb inside walls*/
     if( movement != 0 && (player->is_ghost() &&  (   map[ player_position + movement] == STONE
                                     || map[ player_position + movement] == STONE_PUP) ) )
@@ -187,7 +190,7 @@ void Map::explode(int pos, int range, int direction)
         {
 
             int randpu = rand() % 100;
-            if( randpu < 30)
+          /*  if( randpu < 30)
                 map[pos + i * direction] = BOMB_PUP;
             else if( randpu < 60)
                 map[pos + i * direction] = RANGE_PUP;
@@ -198,7 +201,11 @@ void Map::explode(int pos, int range, int direction)
             else if ( randpu < 90)
                 map[pos + i * direction] = SWITCH_PUP;
             else if ( randpu < 100)
-                map[pos + i * direction] = SLIDE_PUP;
+                map[pos + i * direction] = SLIDE_PUP;*/
+            if( randpu < 50)
+                map[pos + i * direction] = BOMB_PUP;
+            else 
+                map[pos + i * direction] = RANGE_PUP;
             
         }
     }
@@ -274,7 +281,11 @@ void Map::check_Learners(std::vector<Player*> players)
 		{
             if ( p->get_mapX() == objective_x && p->get_mapY() == objective_y )
             {
-                std::cout << "Player: " << p->get_Id()  <<" scored!!" << std::endl;
+                //std::cout << "Player: " << p->get_Id()  <<" scored!!" << std::endl;
+                if ( p->get_Id()  == 1){
+                    episode_count++;
+                    std::cout << "Episode number:"<< episode_count << std::endl;
+                }
                 p->reset_position();
             } 
         }

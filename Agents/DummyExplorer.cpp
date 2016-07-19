@@ -13,6 +13,7 @@ int next_action();
 double distance_Calculate(int x1, int y1, int x2, int y2);
 std::vector<Actions> get_Possible_Moves(int x, int y);
 int flee_bombs();
+int explore();
 std::vector<int*> get_Possible_Positions(int x, int y);
 
 int main()
@@ -103,6 +104,40 @@ std::vector<Actions> get_Possible_Moves(int x, int y)
 
     return possible_moves;
 }
+int explore(){
+   int range = 15;
+   for ( int i = -range; i < range; i++)
+    {
+        for ( int j = -range; j < range; j++)
+        {
+            if ( (x[PLAYER_ID] + i >= 0) && (x[PLAYER_ID]+ i < NUM_ROWS) && (y[PLAYER_ID] +j >= 0) && ( y[PLAYER_ID] +j < NUM_COLS) )
+            {
+                if( wordl_map[ (x[PLAYER_ID] )  + i][y[PLAYER_ID] +j] == STONE )
+                {
+                    std::vector<Actions> actions =  get_Possible_Moves(x[PLAYER_ID],y[PLAYER_ID] );
+                    std::vector<Actions>::iterator position  = std::find(actions.begin(), actions.end(), 4);
+                    if ( i < 0)
+                        position = std::find(actions.begin(), actions.end(), UP);
+                    else if ( i > 0)
+                        position = std::find(actions.begin(), actions.end(), DOWN);
+                    if (position != actions.end() && position != actions.end()) // == myVector.end() means the element was not found
+                        actions.erase(position);    
+                        
+                    if (j > 0)
+                        position = std::find(actions.begin(), actions.end(), RIGHT);
+                    else if (j < 0)
+                        position = std::find(actions.begin(), actions.end(), LEFT);
+                        
+                    last_action = *position;
+
+                    return last_action;
+                } 
+            }
+        }  
+    }
+    return -1;
+}
+
 int flee_bombs(){
    int range = 4;
    for ( int i = -3; i < range; i++)
@@ -228,40 +263,32 @@ int  next_action()
         }
         else /*Gets closest enemy and moves towards him*/
         {
-            std::vector<Actions> actions =  get_Possible_Moves(x[PLAYER_ID],y[PLAYER_ID] );
-            double min_dist = 9999.00;
-            int min_dist_pid = -1;
-            for ( int i = 0; i < NUM_PLAYERS; i++)
+            action = explore();
+            
+            if ( action == -1 )
             {
-                if( i != PLAYER_ID && alive[i])
+                std::vector<Actions> actions =  get_Possible_Moves(x[PLAYER_ID],y[PLAYER_ID] );
+                double min_dist = 9999.00;
+                int min_dist_pid = -1;
+                for ( int i = 0; i < NUM_PLAYERS; i++)
                 {
-                    double tmp_dist = distance_Calculate(x[PLAYER_ID], y[PLAYER_ID], x[i], y[i]);
-                    if ( tmp_dist < min_dist )
+                    if( i != PLAYER_ID && alive[i])
                     {
-                        min_dist = tmp_dist;
-                        min_dist_pid = i;
+                        double tmp_dist = distance_Calculate(x[PLAYER_ID], y[PLAYER_ID], x[i], y[i]);
+                        if ( tmp_dist < min_dist )
+                        {
+                            min_dist = tmp_dist;
+                            min_dist_pid = i;
+                        }
                     }
                 }
+                
+                if ( min_dist < bomb_range )
+                {
+                    action = FIRE;
+                }
             }
-            
-            if ( min_dist < bomb_range )
-            {
-                 action = FIRE;
-            }
-            else
-            {
-                if ( y[min_dist_pid] < y[PLAYER_ID])
-                    actions.push_back(UP);
-                else if ( y[min_dist_pid] > y[PLAYER_ID])
-                    actions.push_back(DOWN);
-                if ( x[min_dist_pid] < x[PLAYER_ID])
-                    actions.push_back(LEFT);
-                else if ( x[min_dist_pid] > x[PLAYER_ID])
-                    actions.push_back(RIGHT);  
-                     
-                int randomIndex = rand() % actions.size(); 
-                action = actions[randomIndex];  
-            }
+
         }
     }
     return action;

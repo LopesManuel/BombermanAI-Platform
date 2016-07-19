@@ -52,7 +52,8 @@ int main()
             t2=clock();
             diff  = ((float)t2-(float)t1);
             seconds = diff / CLOCKS_PER_SEC;
-                std::cout << action;
+            
+            std::cout << action;
            /* if ( seconds <= 1 ){
                 // 5 plays per second 
                 usleep((CLOCKS_PER_SEC/speed[PLAYER_ID])-seconds*(CLOCKS_PER_SEC/5));
@@ -213,56 +214,62 @@ std::vector<int*> get_Possible_Positions(int x, int y)
 int  next_action()
 {
     int action = -1;
-    /* Flees from bombs */
-    action = flee_bombs();
-    if ( action == -1)
+
+    /* Destroys wall */
+    if( (wordl_map[x[PLAYER_ID] + 1][y[PLAYER_ID]] == STONE || 
+        wordl_map[x[PLAYER_ID] - 1][y[PLAYER_ID]] == STONE ||
+        wordl_map[x[PLAYER_ID]][y[PLAYER_ID] + 1] == STONE ||
+        wordl_map[x[PLAYER_ID]][y[PLAYER_ID] -1] == STONE) &&  
+            (wordl_map[x[PLAYER_ID]][y[PLAYER_ID]] != BOMB ) )
     {
-        /* Destroys wall */
-        if( (wordl_map[x[PLAYER_ID] + 1][y[PLAYER_ID]] == STONE || 
-            wordl_map[x[PLAYER_ID] - 1][y[PLAYER_ID]] == STONE ||
-            wordl_map[x[PLAYER_ID]][y[PLAYER_ID] + 1] == STONE ||
-            wordl_map[x[PLAYER_ID]][y[PLAYER_ID] -1] == STONE) &&  
-             (wordl_map[x[PLAYER_ID]][y[PLAYER_ID]] != BOMB ) )
+        action = FIRE;
+    }
+    else /*Gets closest enemy and moves towards him*/
+    {
+        std::vector<Actions> actions =  get_Possible_Moves(x[PLAYER_ID],y[PLAYER_ID] );
+        double min_dist = 9999.00;
+        int min_dist_pid = -1;
+        for ( int i = 0; i < NUM_PLAYERS; i++)
         {
-            action = FIRE;
-        }
-        else /*Gets closest enemy and moves towards him*/
-        {
-            std::vector<Actions> actions =  get_Possible_Moves(x[PLAYER_ID],y[PLAYER_ID] );
-            double min_dist = 9999.00;
-            int min_dist_pid = -1;
-            for ( int i = 0; i < NUM_PLAYERS; i++)
+            if( i != PLAYER_ID && alive[i])
             {
-                if( i != PLAYER_ID && alive[i])
+                double tmp_dist = distance_Calculate(x[PLAYER_ID], y[PLAYER_ID], x[i], y[i]);
+                if ( tmp_dist < min_dist )
                 {
-                    double tmp_dist = distance_Calculate(x[PLAYER_ID], y[PLAYER_ID], x[i], y[i]);
-                    if ( tmp_dist < min_dist )
-                    {
-                        min_dist = tmp_dist;
-                        min_dist_pid = i;
-                    }
+                    min_dist = tmp_dist;
+                    min_dist_pid = i;
                 }
             }
-            
-            if ( min_dist < bomb_range )
-            {
-                 action = FIRE;
-            }
-            else
-            {
-                if ( y[min_dist_pid] < y[PLAYER_ID])
-                    actions.push_back(UP);
-                else if ( y[min_dist_pid] > y[PLAYER_ID])
-                    actions.push_back(DOWN);
-                if ( x[min_dist_pid] < x[PLAYER_ID])
-                    actions.push_back(LEFT);
-                else if ( x[min_dist_pid] > x[PLAYER_ID])
-                    actions.push_back(RIGHT);  
-                     
-                int randomIndex = rand() % actions.size(); 
-                action = actions[randomIndex];  
-            }
         }
+        
+        if ( min_dist < bomb_range )
+        {
+                action = FIRE;
+        }
+        else if ( actions.empty())
+        {
+            action = STOP;   
+        }
+        else
+        {
+            if ( y[min_dist_pid] < y[PLAYER_ID])
+                actions.push_back(UP);
+            else if ( y[min_dist_pid] > y[PLAYER_ID])
+                actions.push_back(DOWN);
+            if ( x[min_dist_pid] < x[PLAYER_ID])
+                actions.push_back(LEFT);
+            else if ( x[min_dist_pid] > x[PLAYER_ID])
+                actions.push_back(RIGHT);  
+                    
+            int randomIndex = rand() % actions.size(); 
+            action = actions[randomIndex];  
+        }
+    }
+    int tmpaction = flee_bombs();
+    /* Flees from bombs */
+    if ( tmpaction != -1 && action != -1)
+    {
+        action = tmpaction;
     }
     return action;
 }

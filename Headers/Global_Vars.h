@@ -2,6 +2,7 @@
 #define __DEFINITIONS__
 
 #include <math.h>
+#include <algorithm>
 #include <fstream>
 #include <iostream>
 #include <vector>    
@@ -21,14 +22,16 @@
 //Screen dimension constants 
 extern const int SCREEN_WIDTH;
 extern const int SCREEN_HEIGHT;
-extern const int SPRITE_SIZE;
-extern const int NUM_COLS;
-extern const int NUM_ROWS;
+extern  int SPRITE_SIZE;
+extern  int NUM_COLS;
+extern  int NUM_ROWS;
 
 
 // Global logic 
 extern int gameover;
 extern int seed;
+extern bool map_randomizer;
+
 //The window we'll be rendering to
 extern SDL_Window* gWindow;
 	
@@ -96,15 +99,17 @@ enum PowerUps
     SLIDE_PUP = 'l'
 };
 
+/************************ RL  ****************************/
+
 extern bool learning;
 extern int objective_x;
 extern int objective_y;
+extern int episode_count;
 
 /************************ LOG ****************************/
+
 extern std::fstream log_data;
-
 extern bool keep_log;
-
 extern int state;
 
 /******************* COMMUNICATIONS **********************/

@@ -4,8 +4,6 @@
 #include <iostream>
 #include <string>
 
-int holes [14][2] = { {3,2},{3,3},{3,4},{3,5},{3,6},{3,7},{3,8},{1,2},{1,3},{1,4},{1,5},{1,6},{1,7},{1,8}};
-int num_holes = 14;
 // Values size
 int num_actions = 4;
 // Optimistic initialization
@@ -25,11 +23,14 @@ float ***Q;
 float **parameter_vector;
 /* Discount factor for future rewards [0.0, 1.0]*/
 float gama = 0.9f;  
-float lambda = 0.5f;
+float lambda = 0.1f;
 /* Learning rate */
 float alpha = 0.1f;
 
 int largest_range; 
+
+float episode_score = 0.0f;
+std::vector<float> *epss = new std::vector<float> ();
 
 int s0[2];
 int a0;
@@ -99,19 +100,17 @@ int main()
             {  //Updates players' information
                gameover = update_Players();
             }
+            // AI agents get next action 
+            action = next_action();
             count++;
             /* Print action to send to server */
             std::cout << action;
             
-            if ( count % 1000 )
+            if ( count % 100 )
             {
                 count = 1;  
                 save_log();
             }
-//            t1=clock();
-            // AI agents get next action 
-            action = next_action();
-
         }
     }
     return 0;
@@ -120,37 +119,38 @@ int main()
 /* RL agents next action */
 int  next_action()
 {
-    check_Largest_Range();
     int action = -1;
     if ( starting )
         action = start_episode();
     else 
     {
-        r0 = -0.0001f;
-        
-        for (int i = 0; i < largest_range ; i++)
+        r0 = -0.2f;
+        for (int i = 1; i < 2 ; i++)
         {
             if ( wordl_map[x[PLAYER_ID] + i][y[PLAYER_ID]] == BOMB || wordl_map[x[PLAYER_ID] - i][y[PLAYER_ID]] == BOMB 
-            ||   wordl_map[x[PLAYER_ID + i]][y[PLAYER_ID] +i] == BOMB || wordl_map[x[PLAYER_ID]][y[PLAYER_ID] - i] == BOMB  )
+            ||   wordl_map[x[PLAYER_ID] + i][y[PLAYER_ID] +i] == BOMB || wordl_map[x[PLAYER_ID]][y[PLAYER_ID] - i] == BOMB  )
             {
-                r0 = (float) -0.001f / (i + 1);
+                r0 = (float) -1.5f;
                 break;
             }
         } 
-        if ( r0 !=-0.0001f)
+        if (r0 == -0.2f)
         {
-            for (int i = 0; i < NUM_PLAYERS ; i++)
+            if ( x[PLAYER_ID] == OBJECTIVE_X && y[PLAYER_ID] == OBJECTIVE_Y )
             {
-                if ( i != PLAYER_ID && (x[PLAYER_ID] == x[i] && y[PLAYER_ID] == y[i]) )
-                {
-                    r0 = 0.001f;
-                    break;
+                r0 = 20.0f;
+                episode_score += r0;
+                if ( episode_score <= 17.4f){
+                    //std::cout << "Player " << PLAYER_ID << " scored:" << episode_score << std::endl;
+                    epss->push_back(episode_score);
                 }
+                episode_score = 0;
+                
             }
-        } 
-        if ( x[PLAYER_ID] == OBJECTIVE_X && y[PLAYER_ID] == OBJECTIVE_Y )
-        {
-            r0 = 3.0f;
+            else
+            {
+                episode_score += r0;
+            }
         }
         action = step();
     }
@@ -263,7 +263,7 @@ int get_max_value_index()
     }
 	return qmax_index;
 }
-
+/*
 void save_log()
 {
     std::fstream log_data;
@@ -287,6 +287,26 @@ void save_log()
         }
         current_log += "-------------------------\n";
     }
+    log_data << current_log;
+}
+*/
+void save_log()
+{
+    std::fstream log_data;
+    char seedstring[4];
+    std::sprintf(seedstring,"%d",PLAYER_ID); 
+    std::string path = "Q_values";
+    path += "_";
+    path += seedstring;
+    log_data.open(path,std::fstream::out );   
+    std::string current_log = ""; 
+    for ( int i = 0; i < epss->size(); i++ ) 
+    {
+        
+        current_log += std::to_string(epss->at(i) ); 
+        current_log += " ";	
+    }
+    current_log += "\n-------------------------\n";
     log_data << current_log;
 }
 

@@ -7,9 +7,9 @@
 //Screen dimension constants 
 const int SCREEN_WIDTH  = 640;
 const int SCREEN_HEIGHT = 480;
-const int SPRITE_SIZE   = 32;
-const int NUM_COLS = SCREEN_WIDTH / SPRITE_SIZE;
-const int NUM_ROWS = SCREEN_HEIGHT / SPRITE_SIZE;
+int SPRITE_SIZE   = 32;
+int NUM_COLS = SCREEN_WIDTH / SPRITE_SIZE;
+int NUM_ROWS = SCREEN_HEIGHT / SPRITE_SIZE;
 
 int speed;
 int seed = -1; 
@@ -32,7 +32,7 @@ bool draw_screen = true;
 Player* player1 = new Player("Images/player.bmp" , 1, 1, 1, 1);
 Player* player2 = new Player("Images/player2.bmp" , 18, 1, 2, 2);
 Player* player3 = new Player("Images/player3.bmp" , 1, 13, 3, 3);
-Player* player4 = new Player("Images/player4.bmp" , 5, 13, 4, 4);
+Player* player4 = new Player("Images/player4.bmp" , 18, 13, 4, 4);
 std::vector<Player*> all_Players;
 
 //Number of active players
@@ -55,6 +55,7 @@ char* level;
 //Waits for map update before changing it
 bool map_updated = true;
 bool bomb_added = true; 
+bool map_randomizer = false;
 
 //Map object to control all events
 Map* map;
@@ -79,7 +80,9 @@ std::fstream log_data;
 //Reinforcement learning variables
 bool learning = false;
 int objective_x, objective_y;
-    
+int episode_count = 0;
+int max_ep_count = 600;
+
 //Parses the comands from shell
 void cmdParse(int argc , char* argv[]);
 //Initializes the players that are going to play
@@ -156,7 +159,7 @@ int main ( int argc, char *argv[] )
                 diff  = ((float)t2-(float)t1);
                 seconds = diff / CLOCKS_PER_SEC;
                 //4 minutes s the simulation max time
-                if ( seconds >= 300 ) 
+                if ( seconds >= 60 ) 
                 {
                     std::cout << "Simulation exceeded time limit!" << std::endl;
                     exit(-1);
@@ -167,6 +170,8 @@ int main ( int argc, char *argv[] )
             {
                 count = 1;
                 map->check_Learners(all_Players);
+                if ( episode_count >= max_ep_count)
+                    gameover = 1;
             } 
 		}
         lg->write_state(all_Players);
@@ -188,7 +193,7 @@ int main ( int argc, char *argv[] )
         }
         else 
         {
-            int winner =  map->who_Won(all_Players);
+             int winner =  map->who_Won(all_Players);
             if ( winner == -1){
                 std::cout << "Draw!!" << std::endl;
                 lg->write_winner(winner, NULL);
@@ -197,6 +202,30 @@ int main ( int argc, char *argv[] )
             {
                 std::cout << "Player " << winner+1 << " won!! Congratulations! Agent:"<< executes[winner] << std::endl;
                 lg->write_winner(winner, all_Players[winner]->get_agent());
+            }
+            int rank[all_Players.size()];
+            for (int i=0; i < all_Players.size(); i++) 
+            {
+                rank[i] = all_Players[i]->turns;
+            }  
+            //Now we call the sort function
+            std::sort(rank, rank + all_Players.size(),std::greater<int>());
+
+            std::cout << "Rank:" << std::endl;
+            for (size_t i = 0; i < all_Players.size(); ++i)
+            {
+                for (size_t j = 0; j < all_Players.size(); ++j)
+                    if ( all_Players[j]->turns == rank[i]){
+                         if ( (i == 0 || i==1) && winner == j )
+                            std::cout << "1."<< executes[j] << " Turns: "<<rank[i] << " Bombs:" << all_Players[j]->num_bombs_planted<< std::endl;
+                        else if ( (i == 0 ) && winner != j )
+                            std::cout << "2."<< executes[j] << " Turns: "<<rank[i] << " Bombs:" << all_Players[j]->num_bombs_planted<< std::endl;
+                        else
+                            std::cout << i+1<<"."<< executes[j] << " Turns: "<<rank[i] << " Bombs:" << all_Players[j]->num_bombs_planted<< std::endl;
+                        all_Players[j]->turns =-1;
+                        break;
+                    }
+                    
             }
         }
     }
@@ -280,6 +309,10 @@ void cmdParse(int argc , char* argv[])
         {
             level = argv[i+1];
         }
+        else if( strcmp(argv[i], "-maprand") == 0 )
+        {
+            map_randomizer = true;
+        }
         else if( strcmp(argv[i], "-m") == 0 )
         {
             if ( connected != 0)
@@ -342,6 +375,21 @@ void cmdParse(int argc , char* argv[])
             }
             else{
                 printf( "Error on seed number!\n" );
+                exit(-1);
+            }
+         }
+        else if ( strcmp(argv[i], "-eps") == 0 )
+        {
+            if(argv[i+1] == NULL)
+            {
+                printf( "Missing total number of episodes!\n" );
+                exit(-1);   
+            }
+            else if( atoi(argv[i+1]) > 0 ){
+                max_ep_count = atoi(argv[i+1]);
+            }
+            else{
+                printf( "Error on number of episodes!\n" );
                 exit(-1);
             }
          }

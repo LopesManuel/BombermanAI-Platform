@@ -15,7 +15,7 @@ struct node{
 };
 
 //Plan K to follow
-int k = 8;
+int k = 2;
 int kcount = 0;
 
 //Last bomb's position
@@ -348,7 +348,7 @@ void bfs( std::function<bool(node &, std::deque<node> & explore)> condition )
     std::deque<node> explore = get_Possible_Positions(&root);
     for( int i = 0; i < explore.size(); i++)
     {
-            if (condition(explore[i], explore) )
+            if ( ( !check_for_bombs(explore[i].x, explore[i].y) || in_danger) && condition(explore[i], explore) )
                 break;
     }
     while( !explore.empty() ) 
@@ -376,7 +376,7 @@ void bfs( std::function<bool(node &, std::deque<node> & explore)> condition )
                     break;
                 }
             }
-            if ( !seen  ) 
+            if ( !seen && ( !check_for_bombs(tmp[i].x, tmp[i].y) || in_danger) ) 
             {
                 explore.push_back(tmp[i]);
                 

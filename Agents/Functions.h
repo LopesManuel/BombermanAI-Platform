@@ -108,7 +108,7 @@ bool connect_RL()
     iss >> NUM_ROWS;
     iss >> NUM_PLAYERS;
     iss >> PLAYER_ID;     
-    
+   // std::cout << NUM_COLS <<NUM_PLAYERS << std::endl;
     if (pmesg == CONNECT){
         std::cout << "CONNECTED"; 
     }

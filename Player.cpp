@@ -13,6 +13,8 @@ Player::Player(const char* s, int pos_x, int pos_y, int i, int ti)
 	connected = false;
     id = i;
     team_id = ti;
+    turns = 0;
+    num_bombs_planted = 0;
 }
 void Player::set_position(int xx, int yy)
 {
@@ -56,6 +58,7 @@ bool Player::can_Place()
     if( num_bombs < max_num_boms)
     {
         num_bombs++;
+        num_bombs_planted++;
         return true;
     }    
     return false;

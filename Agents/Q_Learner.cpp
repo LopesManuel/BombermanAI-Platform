@@ -33,6 +33,8 @@ float r0;
 int s1[2];
 int a1; // not used for Q learning
 int starting = 1;
+float episode_score = 0.0f;
+std::vector<float> *epss = new std::vector<float> ();
 
 //Helper functions
 int next_action();
@@ -114,13 +116,32 @@ int  next_action()
         action = start_episode();
     else 
     {
-        for ( int i = 0; i < NUM_PLAYERS; i++)
+        r0 = -0.2f;
+        for (int i = 1; i < 2 ; i++)
         {
-            r0 = -0.0001f;
+            if ( wordl_map[x[PLAYER_ID] + i][y[PLAYER_ID]] == BOMB || wordl_map[x[PLAYER_ID] - i][y[PLAYER_ID]] == BOMB 
+            ||   wordl_map[x[PLAYER_ID] + i][y[PLAYER_ID] +i] == BOMB || wordl_map[x[PLAYER_ID]][y[PLAYER_ID] - i] == BOMB  )
+            {
+                r0 = (float) -1.5f;
+                break;
+            }
+        } 
+        if (r0 == -0.2f)
+        {
             if ( x[PLAYER_ID] == OBJECTIVE_X && y[PLAYER_ID] == OBJECTIVE_Y )
             {
-                r0 = 3.0f;
-                break;
+                r0 = 20.0f;
+                episode_score += r0;
+                if ( episode_score <= 17.4f){
+                    //std::cout << "Player " << PLAYER_ID << " scored:" << episode_score << std::endl;
+                    epss->push_back(episode_score);
+                }
+                episode_score = 0;
+                
+            }
+            else
+            {
+                episode_score += r0;
             }
         }
         action = step();
@@ -211,7 +232,7 @@ int get_max_value_index()
     int qmax_index = 0;
     for (int a = 0; a < num_actions; a++)	
     {
-        if ( can_move2(a) && Q[a][x[PLAYER_ID]][y[PLAYER_ID]] >= qmax ){
+        if ( Q[a][x[PLAYER_ID]][y[PLAYER_ID]] >= qmax ){
             qmax = Q[a][x[PLAYER_ID]][y[PLAYER_ID]];
             qmax_index = a;
         }
@@ -229,44 +250,17 @@ void save_log()
     path += seedstring;
     log_data.open(path,std::fstream::out );   
     std::string current_log = ""; 
-    for ( int a = 0; a < num_actions; a++ )
+    for ( int i = 0; i < epss->size(); i++ ) 
     {
-        for(int i = 0; i < NUM_ROWS; i++)
-        {
-            for(int j = 0; j < NUM_COLS; j++)
-            {
-                current_log += std::to_string(Q[a][i][j]); 
-                current_log += " ";	
-            }
-            current_log += "\n";
-        }
-        current_log += "-------------------------\n";
+        
+        current_log += std::to_string(epss->at(i) ); 
+        current_log += " ";	
     }
+    current_log += "\n-------------------------\n";
     log_data << current_log;
 }
 
 void read_log()
 {
 
-}
-
-bool can_move2(int a)
-{
-    int pos_x = x[PLAYER_ID];
-    int pos_y = y[PLAYER_ID];
-    std::vector<Actions> possible_moves;
-    
-    if( a == DOWN && wordl_map[pos_x + 1][pos_y] != STONE &&  wordl_map[pos_x + 1][pos_y] != WALL &&  wordl_map[pos_x + 1][pos_y] != BOMB &&  wordl_map[pos_x + 1][pos_y] != EXPLOSION)
-        return true; //DOWN
-        
-    if(  a == UP && wordl_map[pos_x - 1][pos_y] != STONE &&  wordl_map[pos_x - 1][pos_y] != WALL &&  wordl_map[pos_x - 1][pos_y] != BOMB &&  wordl_map[pos_x - 1][pos_y] != EXPLOSION)
-        return true; //UP
-
-    if(  a == RIGHT && wordl_map[pos_x][pos_y + 1] != STONE &&  wordl_map[pos_x][pos_y + 1] != WALL &&  wordl_map[pos_x][pos_y + 1] != BOMB &&  wordl_map[pos_x][pos_y + 1] != EXPLOSION)
-        return true; //RIGHT
-
-    if(  a == LEFT && wordl_map[pos_x][pos_y -1] != STONE &&  wordl_map[pos_x][pos_y - 1] != WALL &&  wordl_map[pos_x][pos_y - 1] != BOMB &&  wordl_map[pos_x][pos_y - 1] != EXPLOSION)
-        return true; //LEFT
-
-    return false;
 }
