@@ -2,7 +2,7 @@
 OBJS = SDL_Handler.cpp Logger.cpp Player.cpp Map.cpp Bomb.cpp Communicator.cpp main.cpp 
 
 #OBJ_NAME specifies the name of our exectuable 
-OBJ_NAME = main 
+OBJ_NAME = BAIP 
 
 #CC specifies which compiler we're using 
 CC = g++
